@@ -1,24 +1,10 @@
 {
-  "name": "dao-dapp-frontend",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
   "dependencies": {
-    "@wagmi/core": "^1.5.0",
-    "viem": "^1.1.0",
+    "@wagmi/core": "^3.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.14.0"
-  },
-  "devDependencies": {
-    "@types/react": "^18.2.20",
-    "@types/react-dom": "^18.2.7",
-    "typescript": "^5.2.2",
-    "vite": "^5.3.0",
-    "@vitejs/plugin-react": "^4.0.0"
+    "ethers": "^6.7.0",
+    "axios": "^1.5.0"
+    // keep your other dependencies as-is
   }
 }
