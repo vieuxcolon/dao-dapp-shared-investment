@@ -1,33 +1,48 @@
-import { viemClient } from './viemClient';
-import { parseAbi, createContract } from 'viem';
-import InvestmentDAOJson from '../../../contracts/artifacts/contracts/InvestmentDAO.sol/InvestmentDAO.json';
-import GovernanceJson from '../../../contracts/artifacts/contracts/Governance.sol/Governance.json';
-import TreasuryJson from '../../../contracts/artifacts/contracts/Treasury.sol/Treasury.json';
+import { getContract } from "viem";
+import InvestmentDAO from "../../../contracts/artifacts/contracts/InvestmentDAO.sol/InvestmentDAO.json";
+import Governance from "../../../contracts/artifacts/contracts/Governance.sol/Governance.json";
+import Treasury from "../../../contracts/artifacts/contracts/Treasury.sol/Treasury.json";
+import { publicClient } from "./client";
 
-const DAO_ABI = parseAbi(InvestmentDAOJson.abi);
-const GOVERNANCE_ABI = parseAbi(GovernanceJson.abi);
-const TREASURY_ABI = parseAbi(TreasuryJson.abi);
+/* --------------------------------------------------
+   Contract addresses (env-driven)
+-------------------------------------------------- */
 
-const DAO_ADDRESS = process.env.DAO_CONTRACT_ADDRESS || '';
-const GOVERNANCE_ADDRESS = process.env.GOVERNANCE_CONTRACT_ADDRESS || '';
-const TREASURY_ADDRESS = process.env.TREASURY_CONTRACT_ADDRESS || '';
+const DAO_ADDRESS = process.env.DAO_ADDRESS as `0x${string}`;
+const GOVERNANCE_ADDRESS = process.env.GOVERNANCE_ADDRESS as `0x${string}`;
+const TREASURY_ADDRESS = process.env.TREASURY_ADDRESS as `0x${string}`;
 
-export const daoContract = createContract({
+if (!DAO_ADDRESS || !GOVERNANCE_ADDRESS || !TREASURY_ADDRESS) {
+  throw new Error("Missing contract address environment variables");
+}
+
+/* --------------------------------------------------
+   Contracts
+-------------------------------------------------- */
+
+export const daoContract = getContract({
   address: DAO_ADDRESS,
-  abi: DAO_ABI,
-  publicClient: viemClient,
+  abi: InvestmentDAO.abi,
+  client: publicClient,
 });
 
-export const governanceContract = createContract({
+export const governanceContract = getContract({
   address: GOVERNANCE_ADDRESS,
-  abi: GOVERNANCE_ABI,
-  publicClient: viemClient,
+  abi: Governance.abi,
+  client: publicClient,
 });
 
-export const treasuryContract = createContract({
+export const treasuryContract = getContract({
   address: TREASURY_ADDRESS,
-  abi: TREASURY_ABI,
-  publicClient: viemClient,
+  abi: Treasury.abi,
+  client: publicClient,
 });
 
-console.log('✅ Contract instances initialized for DAO, Governance, and Treasury');
+/* --------------------------------------------------
+   Optional helper exports
+-------------------------------------------------- */
+
+export type DAOContract = typeof daoContract;
+export type GovernanceContract = typeof governanceContract;
+export type TreasuryContract = typeof treasuryContract;
+
