@@ -8,6 +8,9 @@ pragma solidity ^0.8.28;
 contract Treasury {
     address public dao;
 
+    // Optional: track deposits by each sender
+    mapping(address => uint256) public deposits;
+
     event FundsReceived(address indexed sender, uint256 amount);
     event FundsReleased(address indexed to, uint256 amount);
 
@@ -21,7 +24,20 @@ contract Treasury {
         dao = daoAddress;
     }
 
+    /**
+     * @notice Deposit ETH into the treasury
+     */
+    function deposit() external payable {
+        require(msg.value > 0, "Must send ETH");
+        deposits[msg.sender] += msg.value;
+        emit FundsReceived(msg.sender, msg.value);
+    }
+
+    /**
+     * @notice Fallback to accept plain ETH transfers
+     */
     receive() external payable {
+        deposits[msg.sender] += msg.value;
         emit FundsReceived(msg.sender, msg.value);
     }
 
@@ -47,3 +63,4 @@ contract Treasury {
         return address(this).balance;
     }
 }
+
