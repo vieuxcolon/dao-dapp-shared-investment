@@ -13,14 +13,15 @@ contract InvestmentDAO is Governance {
     Treasury public treasury;
 
     constructor(
-        string memory name_,
-        string memory symbol_,
-        uint256 _quorumPercentage,
-        address treasuryAddress
-    ) Governance(name_, symbol_, _quorumPercentage) {
-        require(treasuryAddress != address(0), "Invalid treasury address");
-        treasury = Treasury(treasuryAddress);
-    }
+    string memory name_,
+    string memory symbol_,
+    uint256 _quorumPercentage,
+    address payable treasuryAddress  // <--- change here
+) Governance(name_, symbol_, _quorumPercentage) {
+    require(treasuryAddress != address(0), "Invalid treasury address");
+    treasury = Treasury(treasuryAddress);
+}
+
 
     /**
      * @notice Execute a passed proposal
