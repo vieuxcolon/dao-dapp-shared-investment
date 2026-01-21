@@ -57,7 +57,7 @@ contract InvestmentDAO is Governance {
 
         proposal.executed = true;
 
-        if (proposal.proposalType == ProposalTypes.ProposalType.TRANSFER) {
+       if (proposal.proposalType == ProposalTypes.ProposalKind.TREASURY_SPEND) {
             treasury.executeTransfer(
                 proposal.target,
                 proposal.amount
