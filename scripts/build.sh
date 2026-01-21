@@ -1,9 +1,4 @@
 #!/bin/bash
-# ===============================
-# scripts/build.sh
-# Builds contracts, backend, and frontend
-# ===============================
-
 set -e
 
 echo "🔨 Starting build process for DAO DApp..."
@@ -12,7 +7,10 @@ echo "🔨 Starting build process for DAO DApp..."
 # 1. Compile Smart Contracts
 # ----------------------------
 echo "📦 Compiling smart contracts..."
+cd contracts
+npm install
 npx hardhat compile
+cd ..
 
 # ----------------------------
 # 2. Build Backend
@@ -20,7 +18,12 @@ npx hardhat compile
 echo "⚙️  Building backend..."
 cd backend
 npm install
-npm run build
+# Only run build if script exists
+if npm run | grep -q "build"; then
+  npm run build
+else
+  echo "ℹ️  No backend build step defined (OK for dev)"
+fi
 cd ..
 
 # ----------------------------
@@ -32,7 +35,4 @@ npm install
 npm run build
 cd ..
 
-# ----------------------------
-# 4. Done
-# ----------------------------
-echo "✅ Build completed for contracts, backend, and frontend!"
+echo "✅ Build completed!"
