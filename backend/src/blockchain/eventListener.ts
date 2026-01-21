@@ -1,31 +1,43 @@
-// backend/src/blockchain/eventListener.ts
-import { watchEvent, EventLog } from 'viem';
-import { client } from './contracts';
-import { daoContract } from './contracts';
+import { createPublicClient, http, watchContractEvent, parseAbiItem } from 'viem';
+import { ethers } from 'ethers';
+import { investmentDAOAbi, governanceAbi, treasuryAbi } from './contracts';
 
-/**
- * Start all blockchain event listeners.
- */
+// Initialize a public client to connect to Ethereum (or your chain)
+const client = createPublicClient({
+  transport: http(process.env.RPC_URL || 'https://rpc.ankr.com/eth')
+});
+
+// Example function to start listening to events
 export function startListeners() {
-  console.log('Starting blockchain event listeners...');
-
-  // Example: listening to "ProposalCreated" event
-  watchEvent(client, daoContract, 'ProposalCreated', (event: EventLog) => {
-    console.log('ProposalCreated event:', event);
-    // TODO: handle the event, e.g., save to database
+  // Listen to InvestmentDAO events
+  watchContractEvent(client, {
+    address: process.env.INVESTMENT_DAO_ADDRESS as `0x${string}`,
+    abi: investmentDAOAbi,
+    eventName: 'InvestmentCreated', // Replace with your event name
+    listener: (log) => {
+      console.log('InvestmentCreated event:', log);
+    }
   });
 
-  // Example: listening to "VoteCast" event
-  watchEvent(client, daoContract, 'VoteCast', (event: EventLog) => {
-    console.log('VoteCast event:', event);
-    // TODO: handle the event
+  // Listen to Governance events
+  watchContractEvent(client, {
+    address: process.env.GOVERNANCE_ADDRESS as `0x${string}`,
+    abi: governanceAbi,
+    eventName: 'ProposalCreated',
+    listener: (log) => {
+      console.log('ProposalCreated event:', log);
+    }
   });
 
-  // Example: listening to "FundsDeposited" event
-  watchEvent(client, daoContract, 'FundsDeposited', (event: EventLog) => {
-    console.log('FundsDeposited event:', event);
-    // TODO: handle the event
+  // Listen to Treasury events
+  watchContractEvent(client, {
+    address: process.env.TREASURY_ADDRESS as `0x${string}`,
+    abi: treasuryAbi,
+    eventName: 'FundsDeposited',
+    listener: (log) => {
+      console.log('FundsDeposited event:', log);
+    }
   });
 
-  console.log('Blockchain listeners started successfully.');
+  console.log('Event listeners started');
 }
