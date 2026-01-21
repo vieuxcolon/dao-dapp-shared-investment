@@ -15,17 +15,17 @@ abstract contract Governance is ERC20 {
     uint256 public proposalCount;
 
     struct Proposal {
-        string description;
-        address proposer;
-        ProposalTypes.ProposalType proposalType;
-        address target;
-        uint256 amount;
-        uint256 votesFor;
-        uint256 votesAgainst;
-        uint256 deadline;
-        bool executed;
-        mapping(address => bool) hasVoted;
-    }
+    string description;
+    address proposer;
+    ProposalTypes.ProposalKind proposalType; // ✅ matches ProposalTypes.sol
+    address target;
+    uint256 amount;
+    uint256 votesFor;
+    uint256 votesAgainst;
+    uint256 deadline;
+    bool executed;
+    mapping(address => bool) hasVoted;
+}
 
     mapping(uint256 => Proposal) public proposals;
 
@@ -61,7 +61,7 @@ abstract contract Governance is ERC20 {
      */
     function createProposal(
         string calldata description,
-        ProposalTypes.ProposalType proposalType,
+        ProposalTypes.ProposalKind proposalType,
         address target,
         uint256 amount,
         uint256 votingPeriod
