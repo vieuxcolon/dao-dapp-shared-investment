@@ -1,67 +1,31 @@
-import { publicClient } from "./client";
-import InvestmentDAO from "../../../contracts/artifacts/contracts/InvestmentDAO.sol/InvestmentDAO.json";
+// backend/src/blockchain/eventListener.ts
+import { watchEvent, EventLog } from 'viem';
+import { client } from './contracts';
+import { daoContract } from './contracts';
 
-/* --------------------------------------------------
-   Addresses
--------------------------------------------------- */
+/**
+ * Start all blockchain event listeners.
+ */
+export function startListeners() {
+  console.log('Starting blockchain event listeners...');
 
-const DAO_ADDRESS = process.env.DAO_ADDRESS as `0x${string}`;
+  // Example: listening to "ProposalCreated" event
+  watchEvent(client, daoContract, 'ProposalCreated', (event: EventLog) => {
+    console.log('ProposalCreated event:', event);
+    // TODO: handle the event, e.g., save to database
+  });
 
-if (!DAO_ADDRESS) {
-  throw new Error("DAO_ADDRESS is not defined");
-}
+  // Example: listening to "VoteCast" event
+  watchEvent(client, daoContract, 'VoteCast', (event: EventLog) => {
+    console.log('VoteCast event:', event);
+    // TODO: handle the event
+  });
 
-/* --------------------------------------------------
-   Event listeners
--------------------------------------------------- */
+  // Example: listening to "FundsDeposited" event
+  watchEvent(client, daoContract, 'FundsDeposited', (event: EventLog) => {
+    console.log('FundsDeposited event:', event);
+    // TODO: handle the event
+  });
 
-export function startDAOEventListeners() {
-  const unwatchProposalCreated =
-    publicClient.watchContractEvent({
-      address: DAO_ADDRESS,
-      abi: InvestmentDAO.abi,
-      eventName: "ProposalCreated",
-      onLogs(logs) {
-        for (const log of logs) {
-          console.log("📜 ProposalCreated:", log.args);
-        }
-      },
-    });
-
-  const unwatchVoteCast =
-    publicClient.watchContractEvent({
-      address: DAO_ADDRESS,
-      abi: InvestmentDAO.abi,
-      eventName: "VoteCast",
-      onLogs(logs) {
-        for (const log of logs) {
-          console.log("🗳️ VoteCast:", log.args);
-        }
-      },
-    });
-
-  const unwatchExecuted =
-    publicClient.watchContractEvent({
-      address: DAO_ADDRESS,
-      abi: InvestmentDAO.abi,
-      eventName: "ProposalExecuted",
-      onLogs(logs) {
-        for (const log of logs) {
-          console.log("✅ ProposalExecuted:", log.args);
-        }
-      },
-    });
-
-  console.log("🚀 DAO event listeners started");
-
-  /* --------------------------------------------------
-     Graceful shutdown support
-  -------------------------------------------------- */
-
-  return () => {
-    unwatchProposalCreated();
-    unwatchVoteCast();
-    unwatchExecuted();
-    console.log("🛑 DAO event listeners stopped");
-  };
+  console.log('Blockchain listeners started successfully.');
 }
