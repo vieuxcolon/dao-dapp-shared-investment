@@ -1,6 +1,7 @@
 # ===============================
 # Dockerfile (root)
-# Hardhat + Node environment for DAO DApp
+# Bootstrap environment for DAO DApp
+# Used ONLY for first-time manual setup
 # ===============================
 
 FROM ubuntu:22.04
@@ -31,7 +32,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 RUN npm install -g hardhat@3.1.4
 
 # ----------------------------
-# 4. Copy repo
+# 4. Copy entire repo
 # ----------------------------
 COPY . /app
 
@@ -43,14 +44,8 @@ RUN cd backend && npm install
 RUN cd frontend && npm install
 
 # ----------------------------
-# 6. Hardhat init, compile, and test
+# 6. Default command
 # ----------------------------
-RUN cd contracts && npx hardhat --init
-RUN cd contracts && npx hardhat clean
-RUN cd contracts && npx hardhat compile
-RUN cd contracts && npx hardhat test
-
-# ----------------------------
-# 7. Default command
-# ----------------------------
+# Intentionally drops into bash.
+# hardhat --init MUST be run manually.
 CMD ["bash"]
