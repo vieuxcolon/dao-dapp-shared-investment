@@ -1,48 +1,35 @@
-import { getContract } from "viem";
-import InvestmentDAO from "../../../contracts/artifacts/contracts/InvestmentDAO.sol/InvestmentDAO.json";
-import Governance from "../../../contracts/artifacts/contracts/Governance.sol/Governance.json";
-import Treasury from "../../../contracts/artifacts/contracts/Treasury.sol/Treasury.json";
-import { publicClient } from "./client";
+// backend/src/blockchain/contracts.ts
+import { createPublicClient, createContract, http } from 'viem';
+import { mainnet } from 'viem/chains';
+import InvestmentDAOJson from '../../../contracts/artifacts/contracts/InvestmentDAO.sol/InvestmentDAO.json';
+import GovernanceJson from '../../../contracts/artifacts/contracts/Governance.sol/Governance.json';
+import TreasuryJson from '../../../contracts/artifacts/contracts/Treasury.sol/Treasury.json';
 
-/* --------------------------------------------------
-   Contract addresses (env-driven)
--------------------------------------------------- */
-
-const DAO_ADDRESS = process.env.DAO_ADDRESS as `0x${string}`;
-const GOVERNANCE_ADDRESS = process.env.GOVERNANCE_ADDRESS as `0x${string}`;
-const TREASURY_ADDRESS = process.env.TREASURY_ADDRESS as `0x${string}`;
-
-if (!DAO_ADDRESS || !GOVERNANCE_ADDRESS || !TREASURY_ADDRESS) {
-  throw new Error("Missing contract address environment variables");
-}
-
-/* --------------------------------------------------
-   Contracts
--------------------------------------------------- */
-
-export const daoContract = getContract({
-  address: DAO_ADDRESS,
-  abi: InvestmentDAO.abi,
-  client: publicClient,
+/**
+ * Viem client to interact with the blockchain
+ */
+export const client = createPublicClient({
+  chain: mainnet, // Change to your chain, e.g., goerli, polygon, etc.
+  transport: http('https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID'), // Replace with your RPC
 });
 
-export const governanceContract = getContract({
-  address: GOVERNANCE_ADDRESS,
-  abi: Governance.abi,
-  client: publicClient,
+/**
+ * Contract instances
+ */
+export const daoContract = createContract({
+  address: '0xYourDAOContractAddress', // replace with deployed DAO contract address
+  abi: InvestmentDAOJson.abi,
+  publicClient: client,
 });
 
-export const treasuryContract = getContract({
-  address: TREASURY_ADDRESS,
-  abi: Treasury.abi,
-  client: publicClient,
+export const governanceContract = createContract({
+  address: '0xYourGovernanceContractAddress', // replace with deployed Governance contract
+  abi: GovernanceJson.abi,
+  publicClient: client,
 });
 
-/* --------------------------------------------------
-   Optional helper exports
--------------------------------------------------- */
-
-export type DAOContract = typeof daoContract;
-export type GovernanceContract = typeof governanceContract;
-export type TreasuryContract = typeof treasuryContract;
-
+export const treasuryContract = createContract({
+  address: '0xYourTreasuryContractAddress', // replace with deployed Treasury contract
+  abi: TreasuryJson.abi,
+  publicClient: client,
+});
