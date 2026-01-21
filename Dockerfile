@@ -1,9 +1,7 @@
-# ===============================
-# Dockerfile (root)
-# Tooling image for DAO DApp
-# - Used for one-time manual bootstrap
-# - Reused safely by docker compose build
-# ===============================
+
+# ============================
+# Hardhat 3.x reproducible env
+# ============================
 
 FROM ubuntu:22.04
 
@@ -38,21 +36,6 @@ RUN npm install -g hardhat@3.1.4
 COPY . /app
 
 # ----------------------------
-# 5. Install dependencies
-# ----------------------------
-RUN cd contracts && npm install
-RUN cd backend && npm install
-RUN cd frontend && npm install
-
-# ----------------------------
-# 6. Compile & test contracts
-#    (assumes Hardhat already initialized)
-# ----------------------------
-RUN cd contracts && npx hardhat clean
-RUN cd contracts && npx hardhat compile
-RUN cd contracts && npx hardhat test
-
-# ----------------------------
-# 7. Default command
+# 5. Default command
 # ----------------------------
 CMD ["bash"]
