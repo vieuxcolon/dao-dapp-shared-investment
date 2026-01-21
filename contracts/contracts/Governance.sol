@@ -32,7 +32,7 @@ abstract contract Governance is ERC20 {
     event ProposalCreated(
         uint256 indexed proposalId,
         address indexed proposer,
-        ProposalTypes.ProposalType proposalType
+        ProposalTypes.ProposalKind proposalType
     );
 
     event VoteCast(
