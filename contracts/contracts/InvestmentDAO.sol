@@ -7,63 +7,47 @@ import "./ProposalTypes.sol";
 
 /**
  * @title InvestmentDAO
- * @author DAO DApp Team
- *
- * @notice
- * Core contract orchestrating shared investment, governance,
- * voting, and treasury execution.
+ * @notice ERC20-based DAO managing investments and treasury
  */
 contract InvestmentDAO is Governance {
     Treasury public treasury;
 
-    event TreasuryInitialized(address treasury);
-    event FundsDeposited(address indexed from, uint256 amount);
-
-    /**
-     * @param _name ERC20 token name
-     * @param _symbol ERC20 token symbol
-     * @param _quorum Minimum quorum percentage (e.g. 20 = 20%)
-     */
     constructor(
-        string memory _name,
-        string memory _symbol,
-        uint256 _quorum
-    ) Governance(_name, _symbol, _quorum) {
-        treasury = new Treasury(address(this));
-        emit TreasuryInitialized(address(treasury));
+        string memory name_,
+        string memory symbol_,
+        uint256 _quorumPercentage,
+        address treasuryAddress
+    ) Governance(name_, symbol_, _quorumPercentage) {
+        require(treasuryAddress != address(0), "Invalid treasury address");
+        treasury = Treasury(treasuryAddress);
     }
 
     /**
-     * @notice Deposit ETH into the DAO and receive governance tokens.
-     * 1 ETH = 1 DAO token (simple model).
-     */
-    function deposit() external payable {
-        require(msg.value > 0, "No ETH sent");
-
-        _mint(msg.sender, msg.value);
-        treasury.deposit{value: msg.value}();
-
-        emit FundsDeposited(msg.sender, msg.value);
-    }
-
-    /**
-     * @notice Execute a proposal after it has passed voting.
+     * @notice Execute a passed proposal
      */
     function executeProposal(uint256 proposalId) external {
         Proposal storage proposal = proposals[proposalId];
 
-        require(!proposal.executed, "Already executed");
         require(proposalPassed(proposalId), "Proposal not passed");
+        require(!proposal.executed, "Proposal already executed");
+
+        if (proposal.proposalType == ProposalTypes.ProposalKind.TREASURY_SPEND) {
+            // Release ETH from treasury
+            treasury.releaseFunds(payable(proposal.target), proposal.amount);
+        }
+
+        // Add future cases for other proposal types here
+        // e.g., PARAMETER_CHANGE, INVESTMENT, etc.
 
         proposal.executed = true;
+    }
 
-       if (proposal.proposalType == ProposalTypes.ProposalKind.TREASURY_SPEND) {
-            treasury.executeTransfer(
-                proposal.target,
-                proposal.amount
-            );
-        } else {
-            revert("Unsupported proposal type");
-        }
+    /**
+     * @notice Deposit ETH into DAO treasury
+     */
+    function depositToTreasury() external payable {
+        require(msg.value > 0, "Must send ETH");
+        (bool success, ) = address(treasury).call{value: msg.value}("");
+        require(success, "ETH deposit failed");
     }
 }
