@@ -1,53 +1,47 @@
-// src/blockchain/contracts.ts
-import type { Abi } from 'viem';
+// backend/src/blockchain/contracts.ts
+import { createPublicClient, createContract, http } from 'viem';
+import { mainnet } from 'viem/chains';
 
-/**
- * Contract addresses (from env)
- */
-export const investmentDAOAddress = process.env.INVESTMENT_DAO_ADDRESS as `0x${string}`;
-export const governanceAddress = process.env.GOVERNANCE_ADDRESS as `0x${string}`;
-export const treasuryAddress = process.env.TREASURY_ADDRESS as `0x${string}`;
+// Import compiled ABIs (ensure paths match your repo)
+import InvestmentDAOJson from '../../../contracts/artifacts/contracts/InvestmentDAO.sol/InvestmentDAO.json';
+import GovernanceJson from '../../../contracts/artifacts/contracts/Governance.sol/Governance.json';
+import TreasuryJson from '../../../contracts/artifacts/contracts/Treasury.sol/Treasury.json';
 
-if (!investmentDAOAddress || !governanceAddress || !treasuryAddress) {
+// Ensure required environment variables are set
+const { INVESTMENT_DAO_ADDRESS, GOVERNANCE_ADDRESS, TREASURY_ADDRESS, RPC_URL } = process.env;
+
+if (!INVESTMENT_DAO_ADDRESS || !GOVERNANCE_ADDRESS || !TREASURY_ADDRESS || !RPC_URL) {
   throw new Error('Missing contract address environment variables');
 }
 
-/**
- * Minimal ABIs (events only for now)
- * Extend later as needed
- */
+// Public client to interact with blockchain
+export const client = createPublicClient({
+  transport: http(RPC_URL),
+  chain: mainnet // replace with your chain if different
+});
 
-export const investmentDAOAbi = [
-  {
-    type: 'event',
-    name: 'InvestmentCreated',
-    inputs: [
-      { name: 'investmentId', type: 'uint256', indexed: true },
-      { name: 'creator', type: 'address', indexed: true },
-      { name: 'amount', type: 'uint256', indexed: false },
-    ],
-  },
-] as const satisfies Abi;
+// Contract instances
+export const daoContract = createContract({
+  address: INVESTMENT_DAO_ADDRESS as `0x${string}`,
+  abi: InvestmentDAOJson.abi,
+  publicClient: client
+});
 
-export const governanceAbi = [
-  {
-    type: 'event',
-    name: 'ProposalCreated',
-    inputs: [
-      { name: 'proposalId', type: 'uint256', indexed: true },
-      { name: 'creator', type: 'address', indexed: true },
-    ],
-  },
-] as const satisfies Abi;
+export const governanceContract = createContract({
+  address: GOVERNANCE_ADDRESS as `0x${string}`,
+  abi: GovernanceJson.abi,
+  publicClient: client
+});
 
-export const treasuryAbi = [
-  {
-    type: 'event',
-    name: 'FundsDeposited',
-    inputs: [
-      { name: 'from', type: 'address', indexed: true },
-      { name: 'amount', type: 'uint256', indexed: false },
-    ],
-  },
-] as const satisfies Abi;
+export const treasuryContract = createContract({
+  address: TREASURY_ADDRESS as `0x${string}`,
+  abi: TreasuryJson.abi,
+  publicClient: client
+});
 
+// Optional helper export
+export const contracts = {
+  daoContract,
+  governanceContract,
+  treasuryContract
+};
