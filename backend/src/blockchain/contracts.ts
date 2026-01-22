@@ -1,35 +1,39 @@
 // backend/src/blockchain/contracts.ts
-import { createPublicClient, createContract, http } from 'viem';
-import { mainnet } from 'viem/chains';
-import InvestmentDAOJson from '../../../contracts/artifacts/contracts/InvestmentDAO.sol/InvestmentDAO.json';
-import GovernanceJson from '../../../contracts/artifacts/contracts/Governance.sol/Governance.json';
-import TreasuryJson from '../../../contracts/artifacts/contracts/Treasury.sol/Treasury.json';
+import { Abi } from 'viem';
 
-/**
- * Viem client to interact with the blockchain
- */
-export const client = createPublicClient({
-  chain: mainnet, // Change to your chain, e.g., goerli, polygon, etc.
-  transport: http('https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID'), // Replace with your RPC
-});
+// Example ABIs (replace with your actual ABI JSONs)
+export const investmentDAOAbi: Abi = [
+  {
+    type: 'event',
+    name: 'Deposit',
+    inputs: [
+      { name: 'user', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false },
+    ],
+  },
+  // add other events/functions as needed
+];
 
-/**
- * Contract instances
- */
-export const daoContract = createContract({
-  address: '0xYourDAOContractAddress', // replace with deployed DAO contract address
-  abi: InvestmentDAOJson.abi,
-  publicClient: client,
-});
+export const governanceAbi: Abi = [
+  {
+    type: 'event',
+    name: 'ProposalCreated',
+    inputs: [
+      { name: 'proposalId', type: 'uint256', indexed: true },
+      { name: 'creator', type: 'address', indexed: true },
+    ],
+  },
+  // add other events/functions as needed
+];
 
-export const governanceContract = createContract({
-  address: '0xYourGovernanceContractAddress', // replace with deployed Governance contract
-  abi: GovernanceJson.abi,
-  publicClient: client,
-});
-
-export const treasuryContract = createContract({
-  address: '0xYourTreasuryContractAddress', // replace with deployed Treasury contract
-  abi: TreasuryJson.abi,
-  publicClient: client,
-});
+export const treasuryAbi: Abi = [
+  {
+    type: 'event',
+    name: 'TreasuryFunded',
+    inputs: [
+      { name: 'from', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false },
+    ],
+  },
+  // add other events/functions as needed
+];
