@@ -1,49 +1,61 @@
+// backend/src/modules/treasury/treasury.service.ts
 import { parseEther, formatEther } from 'viem';
-import { client, treasuryContract } from '../../blockchain/contracts';
+import {
+  client,
+  walletClient,
+  treasuryContract,
+} from '../../blockchain/contracts';
 
 export class TreasuryService {
   // ─────────────────────────────────────────────
-  // Get treasury balance
+  // Get treasury balance (read-only)
   // ─────────────────────────────────────────────
   async getBalance(): Promise<string> {
-    const balance = await client.readContract({
-      ...treasuryContract,
-      functionName: 'getBalance',
-    });
-
-    return formatEther(balance as bigint);
+    const balance = await treasuryContract.read.getBalance();
+    return formatEther(balance);
   }
 
   // ─────────────────────────────────────────────
-  // Deposit ETH
+  // Deposit ETH (on-chain tx)
   // ─────────────────────────────────────────────
   async deposit(amount: string, signer: `0x${string}`) {
-    const hash = await client.writeContract({
-      ...treasuryContract,
-      account: signer,
+    const hash = await walletClient.writeContract({
+      address: treasuryContract.address,
+      abi: treasuryContract.abi,
       functionName: 'deposit',
+      account: signer,
       value: parseEther(amount),
     });
 
-    return await client.waitForTransactionReceipt({ hash });
+    const receipt = await client.waitForTransactionReceipt({ hash });
+
+    return {
+      success: true,
+      txHash: receipt.transactionHash,
+    };
   }
 
   // ─────────────────────────────────────────────
-  // Withdraw ETH
+  // Withdraw ETH (on-chain tx)
   // ─────────────────────────────────────────────
   async withdraw(
     to: `0x${string}`,
     amount: string,
     signer: `0x${string}`,
   ) {
-    const hash = await client.writeContract({
-      ...treasuryContract,
-      account: signer,
+    const hash = await walletClient.writeContract({
+      address: treasuryContract.address,
+      abi: treasuryContract.abi,
       functionName: 'withdraw',
       args: [to, parseEther(amount)],
+      account: signer,
     });
 
-    return await client.waitForTransactionReceipt({ hash });
+    const receipt = await client.waitForTransactionReceipt({ hash });
+
+    return {
+      success: true,
+      txHash: receipt.transactionHash,
+    };
   }
 }
-
