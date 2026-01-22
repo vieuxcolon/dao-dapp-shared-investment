@@ -1,18 +1,16 @@
 // backend/src/modules/votes/votes.service.ts
-import { writeContract, readContract, waitForTransaction } from 'viem';
 import { governanceContract, client } from '../../blockchain/contracts';
 
-export interface VoteInput {
-  proposalId: number;
+interface VoteInput {
+  proposalId: bigint;
   voter: `0x${string}`;
   support: boolean;
-  weight: bigint; // weight in smallest units
+  weight: bigint;
 }
 
 export class VotesService {
-  // Get votes for a proposal from the blockchain
   async getVotes(proposalId: bigint) {
-    return readContract(client, {
+    return await client.readContract({
       address: governanceContract.address,
       abi: governanceContract.abi,
       functionName: 'getVotes',
@@ -20,19 +18,15 @@ export class VotesService {
     });
   }
 
-  // Cast a vote on-chain
   async castVote(data: VoteInput) {
-    const txHash = await writeContract({
-      client,
+    const tx = await client.writeContract({
       address: governanceContract.address,
       abi: governanceContract.abi,
-      functionName: 'vote',
+      functionName: 'vote', // your vote function in contract
       args: [data.proposalId, data.support, data.weight],
-      account: data.voter,
     });
 
-    await waitForTransaction(client, { hash: txHash });
-    return { success: true, txHash };
+    const receipt = await client.waitForTransactionReceipt({ hash: tx.hash });
+    return { success: true, txHash: receipt.transactionHash };
   }
 }
-
