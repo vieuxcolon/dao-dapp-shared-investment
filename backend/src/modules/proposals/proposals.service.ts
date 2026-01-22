@@ -1,39 +1,47 @@
 // backend/src/modules/proposals/proposals.service.ts
-import {
-  governanceContract,
-  client,
-  walletClient,
-} from '../../blockchain/contracts';
+import { readContract, writeContract } from 'viem';
+import { governanceContract, client, walletClient } from '../../blockchain/contracts';
 
 export interface ProposalInput {
   title: string;
   description: string;
+  proposer: string;
   amount: bigint;
 }
 
 export class ProposalsService {
-  // ⚠️ Acceptable for now, but not scalable
   async getAllProposals() {
-    const proposalCount = await governanceContract.read.getProposalCount();
+    const proposalCount = (await readContract(client, {
+      address: governanceContract.address,
+      abi: governanceContract.abi,
+      functionName: 'getProposalCount',
+    })) as bigint; // ✅ explicit cast
 
     const proposals = [];
     for (let i = 0n; i < proposalCount; i++) {
-      const proposal = await governanceContract.read.getProposal([i]);
-      proposals.push(proposal);
+      const p = await readContract(client, {
+        address: governanceContract.address,
+        abi: governanceContract.abi,
+        functionName: 'getProposal',
+        args: [i],
+      });
+      proposals.push(p);
     }
-
     return proposals;
   }
 
   async getProposalById(id: bigint) {
-    return governanceContract.read.getProposal([id]);
+    return readContract(client, {
+      address: governanceContract.address,
+      abi: governanceContract.abi,
+      functionName: 'getProposal',
+      args: [id],
+    });
   }
 
-  async createProposal(
-    data: ProposalInput,
-    signer: `0x${string}`,
-  ) {
-    const hash = await walletClient.writeContract({
+  async createProposal(data: ProposalInput, signer: `0x${string}`) {
+    const tx = await walletClient.writeContract({
+      client: walletClient,
       address: governanceContract.address,
       abi: governanceContract.abi,
       functionName: 'createProposal',
@@ -41,11 +49,8 @@ export class ProposalsService {
       account: signer,
     });
 
-    const receipt = await client.waitForTransactionReceipt({ hash });
-
-    return {
-      success: true,
-      txHash: receipt.transactionHash,
-    };
+    await client.waitForTransactionReceipt({ hash: tx.hash });
+    return { success: true, txHash: tx.hash };
   }
 }
+
