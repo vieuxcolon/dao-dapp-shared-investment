@@ -1,6 +1,4 @@
 import { createPublicClient, getContract, http, PublicClient } from 'viem';
-
-// ✅ CORRECT relative paths (3 levels up to repo root)
 import InvestmentDAOJson from '../../../artifacts/contracts/contracts/InvestmentDAO.sol/InvestmentDAO.json';
 import GovernanceJson from '../../../artifacts/contracts/contracts/Governance.sol/Governance.json';
 import TreasuryJson from '../../../artifacts/contracts/contracts/Treasury.sol/Treasury.json';
@@ -10,7 +8,15 @@ export const client: PublicClient = createPublicClient({
   transport: http('http://127.0.0.1:8545'),
 });
 
-// Contracts
+// DAO contract
+export const DAO_ADDRESS = process.env.DAO_ADDRESS as `0x${string}`;
+export const daoContract = {
+  address: DAO_ADDRESS,
+  abi: InvestmentDAOJson.abi,
+  publicClient: client,
+};
+
+// Other contracts
 export const investmentDAOContract = getContract({
   address: process.env.INVESTMENT_DAO_ADDRESS as `0x${string}`,
   abi: InvestmentDAOJson.abi,
@@ -28,9 +34,3 @@ export const treasuryContract = getContract({
   abi: TreasuryJson.abi,
   publicClient: client,
 });
-
-// ────────────────
-// NEW EXPORTS FOR EVENT LISTENER
-// ────────────────
-export const DAO_ABI = InvestmentDAOJson.abi;
-export const DAO_ADDRESS = pr_
