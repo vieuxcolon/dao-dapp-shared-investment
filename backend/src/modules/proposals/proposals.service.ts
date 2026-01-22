@@ -1,33 +1,59 @@
-import { prisma } from '../../db/prisma';
+// backend/src/modules/proposals/proposals.service.ts
+import { readContract, writeContract } from 'viem';
+import { governanceContract, client } from '../../blockchain/contracts';
 
 export interface ProposalInput {
   title: string;
   description: string;
-  proposer: string;
-  amount: number;
+  proposer: string; // wallet address submitting the proposal
+  amount: bigint; // in wei
 }
 
 export class ProposalsService {
+  // Get all proposals from the blockchain
   async getAllProposals() {
-    return prisma.proposal.findMany({
-      orderBy: { createdAt: 'desc' },
+    const proposalCount = await readContract(client, {
+      address: governanceContract.address,
+      abi: governanceContract.abi,
+      functionName: 'getProposalCount',
+    });
+
+    const proposals = [];
+    for (let i = 0n; i < proposalCount; i++) {
+      const p = await readContract(client, {
+        address: governanceContract.address,
+        abi: governanceContract.abi,
+        functionName: 'getProposal',
+        args: [i],
+      });
+      proposals.push(p);
+    }
+    return proposals;
+  }
+
+  // Get a single proposal by its index (ID)
+  async getProposalById(id: bigint) {
+    return readContract(client, {
+      address: governanceContract.address,
+      abi: governanceContract.abi,
+      functionName: 'getProposal',
+      args: [id],
     });
   }
 
-  async getProposalById(id: number) {
-    return prisma.proposal.findUnique({
-      where: { id },
+  // Create a new proposal on-chain
+  async createProposal(data: ProposalInput, signer: `0x${string}`) {
+    const tx = await writeContract({
+      client,
+      address: governanceContract.address,
+      abi: governanceContract.abi,
+      functionName: 'createProposal',
+      args: [data.title, data.description, data.amount],
+      account: signer,
     });
-  }
 
-  async createProposal(data: ProposalInput) {
-    return prisma.proposal.create({
-      data: {
-        title: data.title,
-        description: data.description,
-        proposer: data.proposer,
-        amount: data.amount,
-      },
-    });
+    await tx.wait(); // wait for confirmation
+    return { success: true, txHash: tx.hash };
   }
 }
+
