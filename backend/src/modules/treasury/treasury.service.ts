@@ -1,63 +1,49 @@
-// backend/src/modules/treasury/treasury.service.ts
-import { readContract, writeContract, waitForTransaction, parseEther, formatEther } from 'viem';
-import { treasuryContract, client } from '../../blockchain/contracts';
+import { parseEther, formatEther } from 'viem';
+import { client, treasuryContract } from '../../blockchain/contracts';
 
 export class TreasuryService {
-  // Get current treasury balance
+  // ─────────────────────────────────────────────
+  // Get treasury balance
+  // ─────────────────────────────────────────────
   async getBalance(): Promise<string> {
-    try {
-      const balance = await readContract({
-        client,
-        address: treasuryContract.address,
-        abi: treasuryContract.abi,
-        functionName: 'getTreasuryBalance',
-      });
+    const balance = await client.readContract({
+      ...treasuryContract,
+      functionName: 'getBalance',
+    });
 
-      return formatEther(balance as bigint);
-    } catch (err) {
-      console.error('Error fetching treasury balance:', err);
-      throw err;
-    }
+    return formatEther(balance as bigint);
   }
 
-  // Deposit funds into treasury
-  async depositFunds(amount: string, depositor: `0x${string}`): Promise<any> {
-    try {
-      const txHash = await writeContract({
-        client,
-        address: treasuryContract.address,
-        abi: treasuryContract.abi,
-        functionName: 'deposit',
-        args: [],
-        value: parseEther(amount),
-        account: depositor,
-      });
+  // ─────────────────────────────────────────────
+  // Deposit ETH
+  // ─────────────────────────────────────────────
+  async deposit(amount: string, signer: `0x${string}`) {
+    const hash = await client.writeContract({
+      ...treasuryContract,
+      account: signer,
+      functionName: 'deposit',
+      value: parseEther(amount),
+    });
 
-      await waitForTransaction(client, { hash: txHash });
-      return { success: true, txHash };
-    } catch (err) {
-      console.error('Error depositing funds:', err);
-      throw err;
-    }
+    return await client.waitForTransactionReceipt({ hash });
   }
 
-  // Withdraw funds from treasury
-  async withdrawFunds(amount: string, recipient: `0x${string}`): Promise<any> {
-    try {
-      const txHash = await writeContract({
-        client,
-        address: treasuryContract.address,
-        abi: treasuryContract.abi,
-        functionName: 'withdraw',
-        args: [parseEther(amount), recipient],
-        account: recipient,
-      });
+  // ─────────────────────────────────────────────
+  // Withdraw ETH
+  // ─────────────────────────────────────────────
+  async withdraw(
+    to: `0x${string}`,
+    amount: string,
+    signer: `0x${string}`,
+  ) {
+    const hash = await client.writeContract({
+      ...treasuryContract,
+      account: signer,
+      functionName: 'withdraw',
+      args: [to, parseEther(amount)],
+    });
 
-      await waitForTransaction(client, { hash: txHash });
-      return { success: true, txHash };
-    } catch (err) {
-      console.error('Error withdrawing funds:', err);
-      throw err;
-    }
+    return await client.waitForTransactionReceipt({ hash });
   }
 }
+
