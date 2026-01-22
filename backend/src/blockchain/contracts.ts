@@ -1,37 +1,30 @@
-// backend/src/blockchain/contracts.ts
 import { createPublicClient, getContract, http, PublicClient } from 'viem';
-import InvestmentDAOJson from '@artifacts/contracts/contracts/InvestmentDAO.sol/InvestmentDAO.json';
-import GovernanceJson from '@artifacts/contracts/contracts/Governance.sol/Governance.json';
-import TreasuryJson from '@artifacts/contracts/contracts/Treasury.sol/Treasury.json';
 
-// ----------------------
+// ✅ CORRECT relative paths (3 levels up to repo root)
+import InvestmentDAOJson from '../../../artifacts/contracts/contracts/InvestmentDAO.sol/InvestmentDAO.json';
+import GovernanceJson from '../../../artifacts/contracts/contracts/Governance.sol/Governance.json';
+import TreasuryJson from '../../../artifacts/contracts/contracts/Treasury.sol/Treasury.json';
+
 // Public client
-// ----------------------
 export const client: PublicClient = createPublicClient({
-  transport: http('http://localhost:8545'), // Replace with your local or testnet RPC URL
+  transport: http('http://127.0.0.1:8545'),
 });
 
-// ----------------------
 // Contracts
-// ----------------------
-
-// InvestmentDAO contract
 export const investmentDAOContract = getContract({
-  address: '0xYourInvestmentDAOAddressHere', // Replace with deployed address
+  address: process.env.INVESTMENT_DAO_ADDRESS as `0x${string}`,
   abi: InvestmentDAOJson.abi,
   publicClient: client,
 });
 
-// Governance contract
 export const governanceContract = getContract({
-  address: '0xYourGovernanceAddressHere', // Replace with deployed address
+  address: process.env.GOVERNANCE_ADDRESS as `0x${string}`,
   abi: GovernanceJson.abi,
   publicClient: client,
 });
 
-// Treasury contract
 export const treasuryContract = getContract({
-  address: '0xYourTreasuryAddressHere', // Replace with deployed address
+  address: process.env.TREASURY_ADDRESS as `0x${string}`,
   abi: TreasuryJson.abi,
   publicClient: client,
 });
