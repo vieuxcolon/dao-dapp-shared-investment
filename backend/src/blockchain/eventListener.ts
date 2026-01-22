@@ -1,5 +1,5 @@
 // src/blockchain/eventListener.ts
-import { createPublicClient, http, type Log } from 'viem';
+import { createPublicClient, http } from 'viem';
 import {
   investmentDAOAbi,
   governanceAbi,
@@ -18,7 +18,7 @@ export function startListeners() {
     address: investmentDAOAddress,
     abi: investmentDAOAbi,
     eventName: 'InvestmentCreated',
-    onLogs: (logs: Log[]) => {
+    onLogs: (logs) => {
       logs.forEach((log) => {
         console.log('InvestmentCreated:', log.args);
       });
@@ -29,7 +29,7 @@ export function startListeners() {
     address: governanceAddress,
     abi: governanceAbi,
     eventName: 'ProposalCreated',
-    onLogs: (logs: Log[]) => {
+    onLogs: (logs) => {
       logs.forEach((log) => {
         console.log('ProposalCreated:', log.args);
       });
@@ -40,7 +40,7 @@ export function startListeners() {
     address: treasuryAddress,
     abi: treasuryAbi,
     eventName: 'FundsDeposited',
-    onLogs: (logs: Log[]) => {
+    onLogs: (logs) => {
       logs.forEach((log) => {
         console.log('FundsDeposited:', log.args);
       });
