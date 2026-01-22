@@ -1,20 +1,24 @@
 // backend/src/modules/treasury/treasury.service.ts
-import { readContract, writeContract, parseEther, formatEther } from 'viem';
+import {
+  readContract,
+  writeContract,
+  parseEther,
+  formatEther,
+} from 'viem';
 import { treasuryContract, client } from '../../blockchain/contracts';
 
 export class TreasuryService {
-  private contract = treasuryContract;
-
   // Get current treasury balance
   async getBalance(): Promise<string> {
     try {
-      const balance = await readContract(client, {
-        address: this.contract.address,
-        abi: this.contract.abi,
+      const balance = await readContract({
+        client,
+        address: treasuryContract.address,
+        abi: treasuryContract.abi,
         functionName: 'getTreasuryBalance',
       });
 
-      // Convert BigInt to ETH string
+      // readContract returns a bigint or number depending on the function
       return formatEther(balance as bigint);
     } catch (err) {
       console.error('Error fetching treasury balance:', err);
@@ -23,18 +27,18 @@ export class TreasuryService {
   }
 
   // Deposit funds into treasury
-  async depositFunds(amount: string, fromAddress: `0x${string}`): Promise<any> {
+  async depositFunds(amount: string, depositor: `0x${string}`): Promise<any> {
     try {
-      const tx = await writeContract(client, {
-        address: this.contract.address,
-        abi: this.contract.abi,
+      const tx = await writeContract({
+        client,
+        address: treasuryContract.address,
+        abi: treasuryContract.abi,
         functionName: 'deposit',
         args: [],
         value: parseEther(amount),
-        account: fromAddress,
       });
 
-      return { success: true, txHash: tx };
+      return { success: true, txHash: tx.hash };
     } catch (err) {
       console.error('Error depositing funds:', err);
       throw err;
@@ -44,19 +48,18 @@ export class TreasuryService {
   // Withdraw funds from treasury
   async withdrawFunds(amount: string, recipient: `0x${string}`): Promise<any> {
     try {
-      const tx = await writeContract(client, {
-        address: this.contract.address,
-        abi: this.contract.abi,
+      const tx = await writeContract({
+        client,
+        address: treasuryContract.address,
+        abi: treasuryContract.abi,
         functionName: 'withdraw',
         args: [parseEther(amount), recipient],
-        account: recipient, // signer must be correct
       });
 
-      return { success: true, txHash: tx };
+      return { success: true, txHash: tx.hash };
     } catch (err) {
       console.error('Error withdrawing funds:', err);
       throw err;
     }
   }
 }
-
