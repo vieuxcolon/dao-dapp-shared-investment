@@ -1,12 +1,14 @@
 import { decodeEventLog } from 'viem';
-import { publicClient } from './client';
-import { DAO_ADDRESS, daoAbi } from './contracts';
+import { client } from './contracts';
+import daoAbi from './daoAbi.json'; // adjust path if needed
 
-export function startEventListeners() {
+const DAO_ADDRESS = process.env.DAO_ADDRESS as `0x${string}`;
+
+export function startListeners() {
   // ─────────────────────────────────────────────
   // ProposalCreated
   // ─────────────────────────────────────────────
-  publicClient.watchEvent({
+  client.watchContractEvent({
     address: DAO_ADDRESS,
     abi: daoAbi,
     eventName: 'ProposalCreated',
@@ -18,7 +20,7 @@ export function startEventListeners() {
           topics: log.topics,
         });
 
-        if (decoded.eventName !== 'ProposalCreated') return;
+        if (decoded.eventName !== 'ProposalCreated') continue;
 
         const { proposalId, proposer } = decoded.args as {
           proposalId: bigint;
@@ -26,7 +28,6 @@ export function startEventListeners() {
         };
 
         console.log('ProposalCreated', { proposalId, proposer });
-        // persist to DB here
       }
     },
   });
@@ -34,7 +35,7 @@ export function startEventListeners() {
   // ─────────────────────────────────────────────
   // VoteCast
   // ─────────────────────────────────────────────
-  publicClient.watchEvent({
+  client.watchContractEvent({
     address: DAO_ADDRESS,
     abi: daoAbi,
     eventName: 'VoteCast',
@@ -46,7 +47,7 @@ export function startEventListeners() {
           topics: log.topics,
         });
 
-        if (decoded.eventName !== 'VoteCast') return;
+        if (decoded.eventName !== 'VoteCast') continue;
 
         const { voter, proposalId, support, weight } = decoded.args as {
           voter: `0x${string}`;
@@ -66,9 +67,9 @@ export function startEventListeners() {
   });
 
   // ─────────────────────────────────────────────
-  // Transfer (Treasury)
+  // Transfer
   // ─────────────────────────────────────────────
-  publicClient.watchEvent({
+  client.watchContractEvent({
     address: DAO_ADDRESS,
     abi: daoAbi,
     eventName: 'Transfer',
@@ -80,7 +81,7 @@ export function startEventListeners() {
           topics: log.topics,
         });
 
-        if (decoded.eventName !== 'Transfer') return;
+        if (decoded.eventName !== 'Transfer') continue;
 
         const { from, amount } = decoded.args as {
           from: `0x${string}`;
