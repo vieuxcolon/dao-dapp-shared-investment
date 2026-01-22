@@ -1,10 +1,5 @@
 // backend/src/modules/treasury/treasury.service.ts
-import {
-  readContract,
-  writeContract,
-  parseEther,
-  formatEther,
-} from 'viem';
+import { readContract, writeContract, waitForTransaction, parseEther, formatEther } from 'viem';
 import { treasuryContract, client } from '../../blockchain/contracts';
 
 export class TreasuryService {
@@ -18,7 +13,6 @@ export class TreasuryService {
         functionName: 'getTreasuryBalance',
       });
 
-      // readContract returns a bigint or number depending on the function
       return formatEther(balance as bigint);
     } catch (err) {
       console.error('Error fetching treasury balance:', err);
@@ -29,16 +23,18 @@ export class TreasuryService {
   // Deposit funds into treasury
   async depositFunds(amount: string, depositor: `0x${string}`): Promise<any> {
     try {
-      const tx = await writeContract({
+      const txHash = await writeContract({
         client,
         address: treasuryContract.address,
         abi: treasuryContract.abi,
         functionName: 'deposit',
         args: [],
         value: parseEther(amount),
+        account: depositor,
       });
 
-      return { success: true, txHash: tx.hash };
+      await waitForTransaction(client, { hash: txHash });
+      return { success: true, txHash };
     } catch (err) {
       console.error('Error depositing funds:', err);
       throw err;
@@ -48,15 +44,17 @@ export class TreasuryService {
   // Withdraw funds from treasury
   async withdrawFunds(amount: string, recipient: `0x${string}`): Promise<any> {
     try {
-      const tx = await writeContract({
+      const txHash = await writeContract({
         client,
         address: treasuryContract.address,
         abi: treasuryContract.abi,
         functionName: 'withdraw',
         args: [parseEther(amount), recipient],
+        account: recipient,
       });
 
-      return { success: true, txHash: tx.hash };
+      await waitForTransaction(client, { hash: txHash });
+      return { success: true, txHash };
     } catch (err) {
       console.error('Error withdrawing funds:', err);
       throw err;
