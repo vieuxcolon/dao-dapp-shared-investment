@@ -29,3 +29,8 @@ export const treasuryContract = getContract({
   publicClient: client,
 });
 
+// ────────────────
+// NEW EXPORTS FOR EVENT LISTENER
+// ────────────────
+export const DAO_ABI = InvestmentDAOJson.abi;
+export const DAO_ADDRESS = pr_
