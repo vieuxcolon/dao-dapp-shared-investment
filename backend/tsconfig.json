@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",                // ✅ supports replaceAll, top-level await, etc.
     "module": "commonjs",
     "outDir": "dist",
     "rootDir": "src",
@@ -8,14 +8,14 @@
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true,              // ✅ ignore node_modules type errors
 
-    /* 🔑 REQUIRED FOR YOUR ERRORS */
-    "resolveJsonModule": true,
+    "resolveJsonModule": true,         // ✅ allow import of JSON (ABIs)
     "moduleResolution": "node",
 
-    /* 🧠 Improves viem + ABI typing */
-    "types": ["node"]
+    /* Optional but helps with viem and Node types */
+    "types": ["node"],
+    "lib": ["ES2022", "DOM"]           // ✅ include modern JS and DOM types
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
