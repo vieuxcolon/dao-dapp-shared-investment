@@ -5,17 +5,21 @@ import { governanceContract, client, walletClient } from '../../blockchain/contr
 export interface ProposalInput {
   title: string;
   description: string;
-  proposer: string;
-  amount: bigint;
+  proposer: string; // wallet address
+  amount: bigint;   // in wei
 }
 
 export class ProposalsService {
+  // ─────────────────────────────────────────────
+  // Get all proposals
+  // ─────────────────────────────────────────────
   async getAllProposals() {
+    // Cast proposalCount explicitly to bigint
     const proposalCount = (await readContract(client, {
       address: governanceContract.address,
       abi: governanceContract.abi,
       functionName: 'getProposalCount',
-    })) as bigint; // ✅ explicit cast
+    })) as bigint;
 
     const proposals = [];
     for (let i = 0n; i < proposalCount; i++) {
@@ -30,6 +34,9 @@ export class ProposalsService {
     return proposals;
   }
 
+  // ─────────────────────────────────────────────
+  // Get a proposal by ID
+  // ─────────────────────────────────────────────
   async getProposalById(id: bigint) {
     return readContract(client, {
       address: governanceContract.address,
@@ -39,9 +46,12 @@ export class ProposalsService {
     });
   }
 
+  // ─────────────────────────────────────────────
+  // Create a new proposal
+  // ─────────────────────────────────────────────
   async createProposal(data: ProposalInput, signer: `0x${string}`) {
     const tx = await walletClient.writeContract({
-      client: walletClient,
+      client: walletClient, // use walletClient for writes
       address: governanceContract.address,
       abi: governanceContract.abi,
       functionName: 'createProposal',
@@ -53,4 +63,3 @@ export class ProposalsService {
     return { success: true, txHash: tx.hash };
   }
 }
-
