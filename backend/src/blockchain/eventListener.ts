@@ -1,44 +1,87 @@
-// backend/src/blockchain/eventListener.ts
-import { client } from './contracts';
+import { watchContractEvent } from 'viem/actions';
 import {
+  client,
   investmentDAOContract,
   governanceContract,
   treasuryContract,
 } from './contracts';
 
-export async function startListeners() {
-  console.log('Starting blockchain event listeners...');
+export function startListeners() {
+  console.log('Starting blockchain event listeners…');
 
-  // Example: listen to ProposalCreated event
-  const proposalLogs = await client.getLogs({
+  // ----------------------------
+  // ProposalCreated (InvestmentDAO)
+  // ----------------------------
+  watchContractEvent(client, {
     address: investmentDAOContract.address,
-    event: investmentDAOContract.events.ProposalCreated, // ABI event object
-    fromBlock: 0n,
+    abi: investmentDAOContract.abi,
+    eventName: 'ProposalCreated',
+    onLogs(logs) {
+      for (const log of logs) {
+        const { proposalId, proposer } = log.args as {
+          proposalId: bigint;
+          proposer: `0x${string}`;
+        };
+
+        console.log('ProposalCreated:', {
+          proposalId: proposalId.toString(),
+          proposer,
+        });
+
+        // TODO: persist to DB if needed
+      }
+    },
   });
 
-  proposalLogs.forEach((log) => {
-    console.log('ProposalCreated event:', log);
-  });
-
-  // Example: listen to VoteCast event
-  const voteLogs = await client.getLogs({
+  // ----------------------------
+  // VoteCast (Governance)
+  // ----------------------------
+  watchContractEvent(client, {
     address: governanceContract.address,
-    event: governanceContract.events.VoteCast, // ABI event object
-    fromBlock: 0n,
+    abi: governanceContract.abi,
+    eventName: 'VoteCast',
+    onLogs(logs) {
+      for (const log of logs) {
+        const { voter, proposalId, support, weight } = log.args as {
+          voter: `0x${string}`;
+          proposalId: bigint;
+          support: boolean;
+          weight: bigint;
+        };
+
+        console.log('VoteCast:', {
+          voter,
+          proposalId: proposalId.toString(),
+          support,
+          weight: weight.toString(),
+        });
+
+        // TODO: persist to DB
+      }
+    },
   });
 
-  voteLogs.forEach((log) => {
-    console.log('VoteCast event:', log);
-  });
-
-  // Example: listen to Deposit event
-  const depositLogs = await client.getLogs({
+  // ----------------------------
+  // Deposit (Treasury)
+  // ----------------------------
+  watchContractEvent(client, {
     address: treasuryContract.address,
-    event: treasuryContract.events.Deposit, // ABI event object
-    fromBlock: 0n,
-  });
+    abi: treasuryContract.abi,
+    eventName: 'Deposit',
+    onLogs(logs) {
+      for (const log of logs) {
+        const { from, amount } = log.args as {
+          from: `0x${string}`;
+          amount: bigint;
+        };
 
-  depositLogs.forEach((log) => {
-    console.log('Deposit event:', log);
+        console.log('Deposit:', {
+          from,
+          amount: amount.toString(),
+        });
+
+        // TODO: update treasury balance in DB
+      }
+    },
   });
 }
