@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2021",                  // Use ES2021+ for replaceAll, BigInt, etc.
     "module": "commonjs",
     "outDir": "dist",
     "rootDir": "src",
@@ -12,8 +12,8 @@
     "moduleResolution": "node",
     "types": ["node"],
 
-    "baseUrl": ".",          // ✅ Add this
-    "paths": {               // ✅ Add path mappings
+    "baseUrl": ".",                      
+    "paths": {                           
       "@artifacts/*": ["artifacts/*"]
     }
   },
