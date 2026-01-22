@@ -1,28 +1,38 @@
 {
   "compilerOptions": {
-    "target": "ES2021",                   // Modern JS features like BigInt, replaceAll
+    "target": "ES2021",                  // BigInt, replaceAll, modern JS
     "module": "commonjs",
     "outDir": "dist",
     "rootDir": "src",
-    "strict": true,                       // Enable all strict type checks
-    "esModuleInterop": true,              // Allow default imports from CommonJS modules
+
+    "strict": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,                 // Skip type checking of libraries for faster builds
-    "resolveJsonModule": true,            // Allow importing JSON files
+
+    "skipLibCheck": true,                // Speeds up builds, OK with viem
+    "resolveJsonModule": true,
     "moduleResolution": "node",
     "types": ["node"],
 
-    "baseUrl": ".",                       // Base directory for absolute paths
-    "paths": {                            // Absolute path mapping
-      "@artifacts/*": ["artifacts/*"]
-    },
-
-    "noImplicitAny": true,                // Catch implicit 'any' types
-    "strictNullChecks": true,             // Null safety
+    "noImplicitAny": true,
+    "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
     "noImplicitThis": true,
     "alwaysStrict": true
+
+    /*
+     ⚠️ Intentionally NOT using paths/@artifacts for now.
+     Reason:
+     - ts-node
+     - ts-node-dev
+     - runtime Node resolution
+     do NOT automatically respect tsconfig paths.
+
+     We'll re-enable this later only if we also add:
+       - tsconfig-paths
+       - runtime registration
+    */
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
