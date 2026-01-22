@@ -1,9 +1,8 @@
-// backend/src/blockchain/contracts.ts
+// src/blockchain/contracts.ts
 import type { Abi } from 'viem';
 
 /**
- * Contract addresses
- * Must be provided via environment variables
+ * Contract addresses (from env)
  */
 export const investmentDAOAddress = process.env.INVESTMENT_DAO_ADDRESS as `0x${string}`;
 export const governanceAddress = process.env.GOVERNANCE_ADDRESS as `0x${string}`;
@@ -14,16 +13,17 @@ if (!investmentDAOAddress || !governanceAddress || !treasuryAddress) {
 }
 
 /**
- * ABIs
- * Replace / extend with full ABIs as needed
+ * Minimal ABIs (events only for now)
+ * Extend later as needed
  */
 
 export const investmentDAOAbi = [
   {
     type: 'event',
-    name: 'Deposit',
+    name: 'InvestmentCreated',
     inputs: [
-      { name: 'user', type: 'address', indexed: true },
+      { name: 'investmentId', type: 'uint256', indexed: true },
+      { name: 'creator', type: 'address', indexed: true },
       { name: 'amount', type: 'uint256', indexed: false },
     ],
   },
@@ -43,10 +43,11 @@ export const governanceAbi = [
 export const treasuryAbi = [
   {
     type: 'event',
-    name: 'TreasuryFunded',
+    name: 'FundsDeposited',
     inputs: [
       { name: 'from', type: 'address', indexed: true },
       { name: 'amount', type: 'uint256', indexed: false },
     ],
   },
 ] as const satisfies Abi;
+
