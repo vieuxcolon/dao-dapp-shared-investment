@@ -1,31 +1,37 @@
-import { Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { DAOService } from './dao.service';
-import { DAO } from './dao.types';
 
-export class DAOController {
-  private daoService: DAOService;
+const router = Router();
+const daoService = new DAOService();
 
-  constructor() {
-    this.daoService = new DAOService();
+/**
+ * GET DAO investments
+ * /dao/investments
+ */
+router.get('/investments', async (_req: Request, res: Response) => {
+  try {
+    const investments = await daoService.getInvestments();
+    res.json(investments);
+  } catch (error) {
+    console.error('Error fetching investments:', error);
+    res.status(500).json({ error: 'Failed to fetch investments' });
   }
+});
 
-  async getDAOInfo(req: Request, res: Response) {
-    try {
-      const dao: DAO = await this.daoService.fetchDAOInfo();
-      res.json(dao);
-    } catch (error) {
-      console.error('Error fetching DAO info:', error);
-      res.status(500).json({ error: 'Failed to fetch DAO info' });
-    }
+/**
+ * Create a new investment
+ * POST /dao/invest
+ */
+router.post('/invest', async (req: Request, res: Response) => {
+  try {
+    const { amount, investor } = req.body;
+    const result = await daoService.createInvestment(amount, investor);
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('Error creating investment:', error);
+    res.status(500).json({ error: 'Failed to create investment' });
   }
+});
 
-  async getMembers(req: Request, res: Response) {
-    try {
-      const members = await this.daoService.fetchMembers();
-      res.json(members);
-    } catch (error) {
-      console.error('Error fetching DAO members:', error);
-      res.status(500).json({ error: 'Failed to fetch DAO members' });
-    }
-  }
-}
+export default router;
+
