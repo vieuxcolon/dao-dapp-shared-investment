@@ -1,18 +1,21 @@
-import { ethers } from 'ethers';
-import { getDAOContract } from '../../blockchain/contracts';
+// backend/src/modules/treasury/treasury.service.ts
+import { readContract, writeContract, parseEther, formatEther } from 'viem';
+import { treasuryContract, client } from '../../blockchain/contracts';
 
 export class TreasuryService {
-  private contract;
-
-  constructor() {
-    this.contract = getDAOContract();
-  }
+  private contract = treasuryContract;
 
   // Get current treasury balance
   async getBalance(): Promise<string> {
     try {
-      const balance = await this.contract.getTreasuryBalance();
-      return ethers.utils.formatEther(balance);
+      const balance = await readContract(client, {
+        address: this.contract.address,
+        abi: this.contract.abi,
+        functionName: 'getTreasuryBalance',
+      });
+
+      // Convert BigInt to ETH string
+      return formatEther(balance as bigint);
     } catch (err) {
       console.error('Error fetching treasury balance:', err);
       throw err;
@@ -20,14 +23,18 @@ export class TreasuryService {
   }
 
   // Deposit funds into treasury
-  async depositFunds(amount: string, depositor: string): Promise<any> {
+  async depositFunds(amount: string, fromAddress: `0x${string}`): Promise<any> {
     try {
-      const tx = await this.contract.deposit({
-        from: depositor,
-        value: ethers.utils.parseEther(amount),
+      const tx = await writeContract(client, {
+        address: this.contract.address,
+        abi: this.contract.abi,
+        functionName: 'deposit',
+        args: [],
+        value: parseEther(amount),
+        account: fromAddress,
       });
-      await tx.wait();
-      return { success: true, txHash: tx.hash };
+
+      return { success: true, txHash: tx };
     } catch (err) {
       console.error('Error depositing funds:', err);
       throw err;
@@ -35,17 +42,21 @@ export class TreasuryService {
   }
 
   // Withdraw funds from treasury
-  async withdrawFunds(amount: string, recipient: string): Promise<any> {
+  async withdrawFunds(amount: string, recipient: `0x${string}`): Promise<any> {
     try {
-      const tx = await this.contract.withdraw(
-        ethers.utils.parseEther(amount),
-        recipient
-      );
-      await tx.wait();
-      return { success: true, txHash: tx.hash };
+      const tx = await writeContract(client, {
+        address: this.contract.address,
+        abi: this.contract.abi,
+        functionName: 'withdraw',
+        args: [parseEther(amount), recipient],
+        account: recipient, // signer must be correct
+      });
+
+      return { success: true, txHash: tx };
     } catch (err) {
       console.error('Error withdrawing funds:', err);
       throw err;
     }
   }
 }
+
