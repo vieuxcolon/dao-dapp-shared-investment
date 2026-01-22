@@ -2,9 +2,9 @@
 import { createPublicClient, createContract, http } from 'viem';
 import { mainnet } from 'viem/chains';
 
-import InvestmentDAOJson from '../../../artifacts/contracts/contracts/InvestmentDAO.sol/InvestmentDAO.json';
-import GovernanceJson from '../../../artifacts/contracts/contracts/Governance.sol/Governance.json';
-import TreasuryJson from '../../../artifacts/contracts/contracts/Treasury.sol/Treasury.json';
+importimport InvestmentDAOJson from '@artifacts/contracts/contracts/InvestmentDAO.sol/InvestmentDAO.json';
+import GovernanceJson from '@artifacts/contracts/contracts/Governance.sol/Governance.json';
+import TreasuryJson from '@artifacts/contracts/contracts/Treasury.sol/Treasury.json';
 
 /**
  * Public Viem client to interact with Ethereum (or your chain)
