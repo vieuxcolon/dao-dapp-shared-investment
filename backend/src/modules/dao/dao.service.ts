@@ -1,39 +1,45 @@
-import { DAO } from './dao.types';
-import { viemClient, contracts } from '../../blockchain';
+// backend/src/modules/dao/dao.service.ts
+import {
+  readContract,
+  writeContract,
+  parseEther,
+} from 'viem';
+import { daoContract, client } from '../../blockchain/contracts';
 
 export class DAOService {
-  constructor() {}
-
-  // Fetch general DAO information from the smart contract
-  async fetchDAOInfo(): Promise<DAO> {
+  // Create a new investment
+  async createInvestment(amount: string, investor: `0x${string}`) {
     try {
-      const daoContract = contracts.daoContract(viemClient);
-      const name = await daoContract.name();
-      const symbol = await daoContract.symbol();
-      const totalMembers = await daoContract.totalMembers();
-      const treasuryBalance = await daoContract.treasuryBalance();
+      const tx = await writeContract({
+        client,
+        address: daoContract.address,
+        abi: daoContract.abi,
+        functionName: 'createInvestment',
+        args: [parseEther(amount)],
+        account: investor,
+      });
 
-      return {
-        name,
-        symbol,
-        totalMembers: Number(totalMembers),
-        treasuryBalance: Number(treasuryBalance),
-      };
-    } catch (error) {
-      console.error('Error fetching DAO info:', error);
-      throw error;
+      return { success: true, txHash: tx.hash };
+    } catch (err) {
+      console.error('Error creating investment:', err);
+      throw err;
     }
   }
 
-  // Fetch DAO members
-  async fetchMembers(): Promise<string[]> {
+  // Fetch all investments
+  async getInvestments(): Promise<any[]> {
     try {
-      const daoContract = contracts.daoContract(viemClient);
-      const members = await daoContract.getMembers();
-      return members;
-    } catch (error) {
-      console.error('Error fetching DAO members:', error);
-      throw error;
+      const investments = await readContract({
+        client,
+        address: daoContract.address,
+        abi: daoContract.abi,
+        functionName: 'getInvestments',
+      });
+
+      return investments;
+    } catch (err) {
+      console.error('Error fetching investments:', err);
+      throw err;
     }
   }
 }
