@@ -1,86 +1,93 @@
-import { watchContractEvent } from 'viem/actions';
-import {
-  client,
-  investmentDAOContract,
-  governanceContract,
-  treasuryContract,
-} from './contracts';
+import { decodeEventLog } from 'viem';
+import { publicClient } from './client';
+import { DAO_ADDRESS, daoAbi } from './contracts';
 
-export function startListeners() {
-  console.log('Starting blockchain event listeners…');
-
-  // ----------------------------
-  // ProposalCreated (InvestmentDAO)
-  // ----------------------------
-  watchContractEvent(client, {
-    address: investmentDAOContract.address,
-    abi: investmentDAOContract.abi,
+export function startEventListeners() {
+  // ─────────────────────────────────────────────
+  // ProposalCreated
+  // ─────────────────────────────────────────────
+  publicClient.watchEvent({
+    address: DAO_ADDRESS,
+    abi: daoAbi,
     eventName: 'ProposalCreated',
     onLogs(logs) {
       for (const log of logs) {
-        const { proposalId, proposer } = log.args as {
+        const decoded = decodeEventLog({
+          abi: daoAbi,
+          data: log.data,
+          topics: log.topics,
+        });
+
+        if (decoded.eventName !== 'ProposalCreated') return;
+
+        const { proposalId, proposer } = decoded.args as {
           proposalId: bigint;
           proposer: `0x${string}`;
         };
 
-        console.log('ProposalCreated:', {
-          proposalId: proposalId.toString(),
-          proposer,
-        });
-
-        // TODO: persist to DB if needed
+        console.log('ProposalCreated', { proposalId, proposer });
+        // persist to DB here
       }
     },
   });
 
-  // ----------------------------
-  // VoteCast (Governance)
-  // ----------------------------
-  watchContractEvent(client, {
-    address: governanceContract.address,
-    abi: governanceContract.abi,
+  // ─────────────────────────────────────────────
+  // VoteCast
+  // ─────────────────────────────────────────────
+  publicClient.watchEvent({
+    address: DAO_ADDRESS,
+    abi: daoAbi,
     eventName: 'VoteCast',
     onLogs(logs) {
       for (const log of logs) {
-        const { voter, proposalId, support, weight } = log.args as {
+        const decoded = decodeEventLog({
+          abi: daoAbi,
+          data: log.data,
+          topics: log.topics,
+        });
+
+        if (decoded.eventName !== 'VoteCast') return;
+
+        const { voter, proposalId, support, weight } = decoded.args as {
           voter: `0x${string}`;
           proposalId: bigint;
           support: boolean;
           weight: bigint;
         };
 
-        console.log('VoteCast:', {
+        console.log('VoteCast', {
           voter,
-          proposalId: proposalId.toString(),
+          proposalId,
           support,
-          weight: weight.toString(),
+          weight,
         });
-
-        // TODO: persist to DB
       }
     },
   });
 
-  // ----------------------------
-  // Deposit (Treasury)
-  // ----------------------------
-  watchContractEvent(client, {
-    address: treasuryContract.address,
-    abi: treasuryContract.abi,
-    eventName: 'Deposit',
+  // ─────────────────────────────────────────────
+  // Transfer (Treasury)
+  // ─────────────────────────────────────────────
+  publicClient.watchEvent({
+    address: DAO_ADDRESS,
+    abi: daoAbi,
+    eventName: 'Transfer',
     onLogs(logs) {
       for (const log of logs) {
-        const { from, amount } = log.args as {
+        const decoded = decodeEventLog({
+          abi: daoAbi,
+          data: log.data,
+          topics: log.topics,
+        });
+
+        if (decoded.eventName !== 'Transfer') return;
+
+        const { from, amount } = decoded.args as {
           from: `0x${string}`;
           amount: bigint;
         };
 
-        console.log('Deposit:', {
-          from,
-          amount: amount.toString(),
-        });
-
-        // TODO: update treasury balance in DB
+        console.log('Transfer', { from, amount });
       }
     },
   });
