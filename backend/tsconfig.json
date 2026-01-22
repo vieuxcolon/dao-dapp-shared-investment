@@ -1,21 +1,28 @@
 {
   "compilerOptions": {
-    "target": "ES2021",                  // Use ES2021+ for replaceAll, BigInt, etc.
+    "target": "ES2021",                   // Modern JS features like BigInt, replaceAll
     "module": "commonjs",
     "outDir": "dist",
     "rootDir": "src",
-    "strict": true,
-    "esModuleInterop": true,
+    "strict": true,                       // Enable all strict type checks
+    "esModuleInterop": true,              // Allow default imports from CommonJS modules
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
+    "skipLibCheck": true,                 // Skip type checking of libraries for faster builds
+    "resolveJsonModule": true,            // Allow importing JSON files
     "moduleResolution": "node",
     "types": ["node"],
 
-    "baseUrl": ".",                      
-    "paths": {                           
+    "baseUrl": ".",                       // Base directory for absolute paths
+    "paths": {                            // Absolute path mapping
       "@artifacts/*": ["artifacts/*"]
-    }
+    },
+
+    "noImplicitAny": true,                // Catch implicit 'any' types
+    "strictNullChecks": true,             // Null safety
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
