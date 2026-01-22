@@ -21,7 +21,7 @@ async function main() {
 
     console.log('--- Testing VotesService ---');
     // Replace with a real proposalId from your contract
-    const votesForProposal = await votes.getVotes(1);
+    const votesForProposal = await votes.getVotes(1n);
     console.log('Votes for proposal #1:', votesForProposal);
 
     // Uncomment to test casting a vote
