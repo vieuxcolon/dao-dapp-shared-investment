@@ -1,21 +1,17 @@
 import { decodeEventLog } from 'viem';
-import { client, DAO_ABI, DAO_ADDRESS } from './contracts';
+import { client, DAO_ADDRESS } from './contracts';
+import daoAbi from './daoAbi.json';
 
 export function startListeners() {
-  // ─────────────────────────────────────────────
   // ProposalCreated
-  // ─────────────────────────────────────────────
   client.watchContractEvent({
     address: DAO_ADDRESS,
-    abi: DAO_ABI,
+    abi: daoAbi,
     eventName: 'ProposalCreated',
     onLogs(logs) {
       for (const log of logs) {
-        const decoded = decodeEventLog({
-          abi: DAO_ABI,
-          data: log.data,
-          topics: log.topics,
-        });
+        const decoded = decodeEventLog({ abi: daoAbi, data: log.data, topics: log.topics });
+        if (decoded.eventName !== 'ProposalCreated') continue;
 
         const { proposalId, proposer } = decoded.args as {
           proposalId: bigint;
@@ -27,20 +23,15 @@ export function startListeners() {
     },
   });
 
-  // ─────────────────────────────────────────────
   // VoteCast
-  // ─────────────────────────────────────────────
   client.watchContractEvent({
     address: DAO_ADDRESS,
-    abi: DAO_ABI,
+    abi: daoAbi,
     eventName: 'VoteCast',
     onLogs(logs) {
       for (const log of logs) {
-        const decoded = decodeEventLog({
-          abi: DAO_ABI,
-          data: log.data,
-          topics: log.topics,
-        });
+        const decoded = decodeEventLog({ abi: daoAbi, data: log.data, topics: log.topics });
+        if (decoded.eventName !== 'VoteCast') continue;
 
         const { voter, proposalId, support, weight } = decoded.args as {
           voter: `0x${string}`;
@@ -54,26 +45,17 @@ export function startListeners() {
     },
   });
 
-  // ─────────────────────────────────────────────
   // Transfer
-  // ─────────────────────────────────────────────
   client.watchContractEvent({
     address: DAO_ADDRESS,
-    abi: DAO_ABI,
+    abi: daoAbi,
     eventName: 'Transfer',
     onLogs(logs) {
       for (const log of logs) {
-        const decoded = decodeEventLog({
-          abi: DAO_ABI,
-          data: log.data,
-          topics: log.topics,
-        });
+        const decoded = decodeEventLog({ abi: daoAbi, data: log.data, topics: log.topics });
+        if (decoded.eventName !== 'Transfer') continue;
 
-        const { from, amount } = decoded.args as {
-          from: `0x${string}`;
-          amount: bigint;
-        };
-
+        const { from, amount } = decoded.args as { from: `0x${string}`; amount: bigint };
         console.log('Transfer', { from, amount });
       }
     },
