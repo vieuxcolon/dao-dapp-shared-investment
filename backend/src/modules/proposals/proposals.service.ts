@@ -1,50 +1,39 @@
 // backend/src/modules/proposals/proposals.service.ts
-import { readContract, writeContract } from 'viem';
-import { governanceContract, client } from '../../blockchain/contracts';
+import {
+  governanceContract,
+  client,
+  walletClient,
+} from '../../blockchain/contracts';
 
 export interface ProposalInput {
   title: string;
   description: string;
-  proposer: string; // wallet address submitting the proposal
-  amount: bigint; // in wei
+  amount: bigint;
 }
 
 export class ProposalsService {
-  // Get all proposals from the blockchain
+  // ⚠️ Acceptable for now, but not scalable
   async getAllProposals() {
-    const proposalCount = await readContract(client, {
-      address: governanceContract.address,
-      abi: governanceContract.abi,
-      functionName: 'getProposalCount',
-    });
+    const proposalCount = await governanceContract.read.getProposalCount();
 
     const proposals = [];
     for (let i = 0n; i < proposalCount; i++) {
-      const p = await readContract(client, {
-        address: governanceContract.address,
-        abi: governanceContract.abi,
-        functionName: 'getProposal',
-        args: [i],
-      });
-      proposals.push(p);
+      const proposal = await governanceContract.read.getProposal([i]);
+      proposals.push(proposal);
     }
+
     return proposals;
   }
 
-  // Get a single proposal by its index (ID)
   async getProposalById(id: bigint) {
-    return readContract(client, {
-      address: governanceContract.address,
-      abi: governanceContract.abi,
-      functionName: 'getProposal',
-      args: [id],
-    });
+    return governanceContract.read.getProposal([id]);
   }
 
-  // Create a new proposal on-chain
-  async createProposal(data: ProposalInput, signer: `0x${string}`) {
-    const tx = await writeContract({
-      client,
+  async createProposal(
+    data: ProposalInput,
+    signer: `0x${string}`,
+  ) {
+    const hash = await walletClient.writeContract({
       address: governanceContract.address,
       abi: governanceContract.abi,
       functionName: 'createProposal',
@@ -52,8 +41,11 @@ export class ProposalsService {
       account: signer,
     });
 
-    await tx.wait(); // wait for confirmation
-    return { success: true, txHash: tx.hash };
+    const receipt = await client.waitForTransactionReceipt({ hash });
+
+    return {
+      success: true,
+      txHash: receipt.transactionHash,
+    };
   }
 }
-
