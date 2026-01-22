@@ -1,40 +1,30 @@
-import 'dotenv/config';
+// backend/src/main.ts
+import 'dotenv/config'; // Load .env variables
 import express from 'express';
 import cors from 'cors';
 import { startListeners } from './blockchain/eventListener';
+import treasuryRoutes from './modules/treasury/treasury.routes';
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
+const app = express();
 
-async function bootstrap() {
-  const app = express();
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-  app.use(cors());
-  app.use(express.json());
+// Start blockchain event listeners
+startListeners();
 
-  app.get('/', (_req, res) => {
-    res.send('DAO Backend is running 🚀');
-  });
+// Mount treasury API routes
+app.use('/treasury', treasuryRoutes);
 
-  const server = app.listen(PORT, () => {
-    console.log(`Backend server running on port ${PORT}`);
-  });
-
-  // Start blockchain listeners AFTER server is ready
-  startListeners();
-
-  // Graceful shutdown (Docker / SIGTERM)
-  const shutdown = () => {
-    console.log('Shutting down backend...');
-    server.close(() => {
-      process.exit(0);
-    });
-  };
-
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
-}
-
-bootstrap().catch((err) => {
-  console.error('Failed to start backend:', err);
-  process.exit(1);
+// Health check / root endpoint
+app.get('/', (req, res) => {
+  res.send('DAO Backend is running 🚀');
 });
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Backend server running on port ${PORT}`);
+});
+
