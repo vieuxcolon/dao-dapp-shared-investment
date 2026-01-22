@@ -1,4 +1,5 @@
-import { publicClient } from './client'
+// src/blockchain/eventListener.ts
+import { createPublicClient, http, type Log } from 'viem';
 import {
   investmentDAOAbi,
   governanceAbi,
@@ -6,20 +7,23 @@ import {
   investmentDAOAddress,
   governanceAddress,
   treasuryAddress,
-} from './contracts'
-import type { Log } from 'viem'
+} from './contracts';
 
-export function startEventListeners() {
+const publicClient = createPublicClient({
+  transport: http(process.env.RPC_URL || 'https://rpc.ankr.com/eth'),
+});
+
+export function startListeners() {
   publicClient.watchContractEvent({
     address: investmentDAOAddress,
     abi: investmentDAOAbi,
     eventName: 'InvestmentCreated',
     onLogs: (logs: Log[]) => {
       logs.forEach((log) => {
-        console.log('InvestmentCreated:', log.args)
-      })
+        console.log('InvestmentCreated:', log.args);
+      });
     },
-  })
+  });
 
   publicClient.watchContractEvent({
     address: governanceAddress,
@@ -27,19 +31,21 @@ export function startEventListeners() {
     eventName: 'ProposalCreated',
     onLogs: (logs: Log[]) => {
       logs.forEach((log) => {
-        console.log('ProposalCreated:', log.args)
-      })
+        console.log('ProposalCreated:', log.args);
+      });
     },
-  })
+  });
 
   publicClient.watchContractEvent({
     address: treasuryAddress,
     abi: treasuryAbi,
-    eventName: 'FundsReleased',
+    eventName: 'FundsDeposited',
     onLogs: (logs: Log[]) => {
       logs.forEach((log) => {
-        console.log('FundsReleased:', log.args)
-      })
+        console.log('FundsDeposited:', log.args);
+      });
     },
-  })
+  });
+
+  console.log('Blockchain event listeners started');
 }
