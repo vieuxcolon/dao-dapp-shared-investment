@@ -1,83 +1,44 @@
 // backend/src/blockchain/eventListener.ts
-import { Log, readContract } from 'viem';
+import { client } from './contracts';
 import {
   investmentDAOContract,
   governanceContract,
   treasuryContract,
-  client,
 } from './contracts';
 
-/**
- * Start listening to blockchain events for all contracts
- */
-export function startListeners() {
-  console.log('Blockchain event listeners started');
+export async function startListeners() {
+  console.log('Starting blockchain event listeners...');
 
-  // Example: Listen to InvestmentDAO events
-  listenToInvestmentDAOEvents();
+  // Example: listen to ProposalCreated event
+  const proposalLogs = await client.getLogs({
+    address: investmentDAOContract.address,
+    event: investmentDAOContract.events.ProposalCreated, // ABI event object
+    fromBlock: 0n,
+  });
 
-  // Example: Listen to Governance events
-  listenToGovernanceEvents();
+  proposalLogs.forEach((log) => {
+    console.log('ProposalCreated event:', log);
+  });
 
-  // Example: Listen to Treasury events
-  listenToTreasuryEvents();
-}
+  // Example: listen to VoteCast event
+  const voteLogs = await client.getLogs({
+    address: governanceContract.address,
+    event: governanceContract.events.VoteCast, // ABI event object
+    fromBlock: 0n,
+  });
 
-/** -------------------- InvestmentDAO -------------------- */
-async function listenToInvestmentDAOEvents() {
-  try {
-    // Fetch past logs (example: all "ProposalCreated" events)
-    const logs: Log[] = await client.getLogs({
-      address: investmentDAOContract.address,
-      abi: investmentDAOContract.abi,
-      event: 'ProposalCreated', // replace with actual event name
-      fromBlock: 0n,
-    });
+  voteLogs.forEach((log) => {
+    console.log('VoteCast event:', log);
+  });
 
-    logs.forEach((log: Log) => {
-      console.log('[InvestmentDAO] ProposalCreated event:', log);
-      // Access args if ABI is fully typed
-      // const { proposer, proposalId } = log.args;
-    });
-  } catch (err) {
-    console.error('Error fetching InvestmentDAO logs:', err);
-  }
-}
+  // Example: listen to Deposit event
+  const depositLogs = await client.getLogs({
+    address: treasuryContract.address,
+    event: treasuryContract.events.Deposit, // ABI event object
+    fromBlock: 0n,
+  });
 
-/** -------------------- Governance -------------------- */
-async function listenToGovernanceEvents() {
-  try {
-    const logs: Log[] = await client.getLogs({
-      address: governanceContract.address,
-      abi: governanceContract.abi,
-      event: 'VoteCast', // replace with actual event name
-      fromBlock: 0n,
-    });
-
-    logs.forEach((log: Log) => {
-      console.log('[Governance] VoteCast event:', log);
-      // const { voter, proposalId, support } = log.args;
-    });
-  } catch (err) {
-    console.error('Error fetching Governance logs:', err);
-  }
-}
-
-/** -------------------- Treasury -------------------- */
-async function listenToTreasuryEvents() {
-  try {
-    const logs: Log[] = await client.getLogs({
-      address: treasuryContract.address,
-      abi: treasuryContract.abi,
-      event: 'Deposit', // replace with actual event name
-      fromBlock: 0n,
-    });
-
-    logs.forEach((log: Log) => {
-      console.log('[Treasury] Deposit event:', log);
-      // const { depositor, amount } = log.args;
-    });
-  } catch (err) {
-    console.error('Error fetching Treasury logs:', err);
-  }
+  depositLogs.forEach((log) => {
+    console.log('Deposit event:', log);
+  });
 }
