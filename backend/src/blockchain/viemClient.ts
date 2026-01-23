@@ -1,12 +1,28 @@
-import { createPublicClient, http } from 'viem';
-import { mainnet, goerli } from 'viem/chains';
+// src/blockchain/viemClient.ts
+import { createPublicClient, createWalletClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { sepolia } from 'viem/chains';
 
-// Create a reusable Viem client for interacting with Ethereum
-const RPC_URL = process.env.ETH_RPC_URL || 'http://localhost:8545';
+import { env } from '../config/env';
 
-export const viemClient = createPublicClient({
-  chain: goerli, // change to mainnet if needed
-  transport: http(RPC_URL),
+/**
+ * Public client
+ * - used for reads
+ * - used for waiting on receipts
+ */
+export const publicClient = createPublicClient({
+  chain: sepolia,
+  transport: http(env.RPC_URL),
 });
 
-console.log(`✅ Viem client initialized for chain: ${viemClient.chain.name}`);
+/**
+ * Wallet client
+ * - used ONLY for sending transactions
+ */
+export const account = privateKeyToAccount(env.DEPLOYER_PRIVATE_KEY);
+
+export const walletClient = createWalletClient({
+  chain: sepolia,
+  transport: http(env.RPC_URL),
+  account,
+});
