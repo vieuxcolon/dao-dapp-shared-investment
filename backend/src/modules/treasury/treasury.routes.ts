@@ -1,35 +1,53 @@
-// backend/src/modules/treasury/treasury.routes.ts
+// src/modules/treasury/treasury.routes.ts
 import { Router } from 'express';
 import { TreasuryService } from './treasury.service';
 
-const router = Router();
-const treasuryService = new TreasuryService();
+export function createTreasuryRoutes(treasuryService: TreasuryService) {
+  const router = Router();
 
-// GET /treasury/balance
-router.get('/balance', async (req, res) => {
-  try {
-    const balance = await treasuryService.getBalance();
-    res.json({ balance });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to get treasury balance' });
-  }
-});
+  // ─────────────────────────────────────────────
+  // Deposit funds
+  // ─────────────────────────────────────────────
+  router.post('/deposit', async (req, res) => {
+    const { depositor, amount } = req.body;
+    if (!depositor || !amount) {
+      return res.status(400).json({ error: 'Missing depositor or amount' });
+    }
 
-// POST /treasury/deposit?amount=1
-router.post('/deposit', async (req, res) => {
-  const { amount } = req.query;
-  const fromAddress = req.body.from; // e.g., one of your Hardhat accounts
+    try {
+      const result = await treasuryService.depositFunds(
+        depositor as `0x${string}`,
+        BigInt(amount),
+      );
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
-  if (!amount || !fromAddress) {
-    return res.status(400).json({ error: 'Missing amount or from address' });
-  }
+  // ─────────────────────────────────────────────
+  // Withdraw funds
+  // ─────────────────────────────────────────────
+  router.post('/withdraw', async (req, res) => {
+    const { recipient, amount } = req.body;
+    if (!recipient || !amount) {
+      return res.status(400).json({ error: 'Missing recipient or amount' });
+    }
 
-  try {
-    const txHash = await treasuryService.depositFunds(amount as string, fromAddress as `0x${string}`);
-    res.json({ txHash });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to deposit funds' });
-  }
-});
+    try {
+      const result = await treasuryService.withdrawFunds(
+        recipient as `0x${string}`,
+        BigInt(amount),
+      );
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
-export default router;
+  // ─────────────────────────────────────────────
+  // Get treasury balance
+  // ─────────────────────────────────────────────
+  router.get('/balance', async (_req, res) => {
+    try {
+      const balance = await treasuryService.getBa
