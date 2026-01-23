@@ -1,30 +1,33 @@
-// Types and interfaces for the DAO module
+// backend/src/modules/dao/dao.types.ts
 
-export interface DAO {
-  name: string;
-  symbol: string;
-  totalMembers: number;
-  treasuryBalance: number;
+/* ─────────────────────────────────────────────
+ * DAO Module Types
+ * ───────────────────────────────────────────── */
+
+/**
+ * Investment object stored off-chain (in DB) for reference
+ */
+export interface Investment {
+  id: bigint;
+  investor: `0x${string}`;
+  amount: bigint;
+  timestamp: number;
+  proposalId?: bigint;
 }
 
-export interface Member {
-  address: string;
-  shares: number;
+/**
+ * CreateInvestment DTO (data received from frontend)
+ */
+export interface CreateInvestmentDto {
+  investor: `0x${string}`;
+  amount: string; // Amount in ETH/wei as string
+  proposalId?: bigint;
 }
 
-export interface Proposal {
-  id: number;
-  title: string;
-  description: string;
-  creator: string;
-  status: 'Pending' | 'Active' | 'Executed' | 'Rejected';
-  votesFor: number;
-  votesAgainst: number;
-}
-
-export interface Vote {
-  voter: string;
-  proposalId: number;
-  support: boolean; // true = yes, false = no
-  weight: number;
+/**
+ * Return type for on-chain investment creation
+ */
+export interface InvestmentTxResult {
+  txHash: `0x${string}`;
+  status: 'pending' | 'success' | 'failed';
 }
