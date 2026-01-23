@@ -1,9 +1,10 @@
+// backend/src/blockchain/contracts.ts
 import {
   createPublicClient,
   createWalletClient,
   getContract,
   http,
-  PublicClient,
+  type PublicClient,
 } from 'viem';
 import { foundry } from 'viem/chains';
 
@@ -31,7 +32,7 @@ export const walletClient = createWalletClient({
 });
 
 // ─────────────────────────────────────────────
-// Contracts
+// Contracts (typed, safe, viem v2)
 // ─────────────────────────────────────────────
 export const investmentDAOContract = getContract({
   address: process.env.INVESTMENT_DAO_ADDRESS as `0x${string}`,
