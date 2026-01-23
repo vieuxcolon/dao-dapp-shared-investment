@@ -1,37 +1,45 @@
-import { Router, Request, Response } from 'express';
-import { DAOService } from './dao.service';
+// src/modules/dao/dao.controller.ts
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { DaoService } from './dao.service';
 
-const router = Router();
-const daoService = new DAOService();
+@Controller('dao')
+export class DaoController {
+  constructor(private readonly daoService: DaoService) {}
 
-/**
- * GET DAO investments
- * /dao/investments
- */
-router.get('/investments', async (_req: Request, res: Response) => {
-  try {
-    const investments = await daoService.getInvestments();
-    res.json(investments);
-  } catch (error) {
-    console.error('Error fetching investments:', error);
-    res.status(500).json({ error: 'Failed to fetch investments' });
+  /* ─────────────────────────────────────────────
+   * Create investment
+   * ───────────────────────────────────────────── */
+  @Post('investments')
+  async createInvestment(
+    @Body()
+    body: {
+      name: string;
+      amount: string;
+      signer: `0x${string}`;
+    },
+  ) {
+    const { name, amount, signer } = body;
+
+    return this.daoService.createInvestment(
+      name,
+      BigInt(amount),
+      signer,
+    );
   }
-});
 
-/**
- * Create a new investment
- * POST /dao/invest
- */
-router.post('/invest', async (req: Request, res: Response) => {
-  try {
-    const { amount, investor } = req.body;
-    const result = await daoService.createInvestment(amount, investor);
-    res.status(201).json(result);
-  } catch (error) {
-    console.error('Error creating investment:', error);
-    res.status(500).json({ error: 'Failed to create investment' });
+  /* ─────────────────────────────────────────────
+   * Get single investment
+   * ───────────────────────────────────────────── */
+  @Get('investments/:id')
+  async getInvestment(@Param('id') id: string) {
+    return this.daoService.getInvestment(BigInt(id));
   }
-});
 
-export default router;
-
+  /* ─────────────────────────────────────────────
+   * Get all investments
+   * ───────────────────────────────────────────── */
+  @Get('investments')
+  async getAllInvestments() {
+    return this.daoService.getAllInvestments();
+  }
+}
