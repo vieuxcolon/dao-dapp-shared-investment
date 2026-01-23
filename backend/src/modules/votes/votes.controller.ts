@@ -1,7 +1,7 @@
-// backend/src/modules/votes/votes.controller.ts
 import { Request, Response } from 'express';
 import { VotesService } from './votes.service';
-import { VoteDto } from './dto';
+import { VoteDto as VoteDtoDTO } from './dto';
+import { VoteDto as VoteDtoService } from './votes.service';
 
 export class VotesController {
   constructor(private readonly votesService: VotesService) {}
@@ -11,13 +11,16 @@ export class VotesController {
    * ───────────────────────────── */
   async vote(req: Request, res: Response) {
     try {
-      // Destructure expected properties from request body
-      const { voter, weight } = req.body as { voter: `0x${string}`; weight: number };
+      // Expect voter as 0x address string and data with support & weight from DTO
+      const { voter, data } = req.body as { voter: `0x${string}`; data: VoteDtoDTO };
 
-      // Create VoteDto with only the expected properties
-      const data: VoteDto = { weight };
+      // Map DTO to Service's expected VoteDto
+      const serviceVote: VoteDtoService = {
+        support: data.support,       // boolean or whatever type service expects
+        weight: data.weight,         // number or bigint as expected by service
+      };
 
-      const result = await this.votesService.vote(voter, data);
+      const result = await this.votesService.vote(voter, serviceVote);
       res.json({ success: true, data: result });
     } catch (err: any) {
       console.error('Vote error:', err);
