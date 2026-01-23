@@ -1,39 +1,51 @@
-import { Router, Request, Response } from 'express';
+// src/modules/proposals/proposals.controller.ts
+import { Controller, Post, Get, Body, Param } from '@nestjs/common';
 import { ProposalsService } from './proposals.service';
+import { CreateProposalDto, VoteDto } from './dto';
 
-const router = Router();
-const service = new ProposalsService();
+@Controller('proposals')
+export class ProposalsController {
+  constructor(private readonly proposalsService: ProposalsService) {}
 
-/**
- * GET proposal by id
- * /proposals/:proposalId
- */
-router.get('/:proposalId', async (req: Request, res: Response) => {
-  try {
-    const proposalId = BigInt(req.params.proposalId);
-    const proposal = await service.getProposalById(proposalId);
-    res.json(proposal);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to fetch proposal' });
+  /* ─────────────────────────────────────────────
+   * Create a new proposal
+   * ───────────────────────────────────────────── */
+  @Post()
+  async createProposal(
+    @Body() body: { signer: `0x${string}`; data: CreateProposalDto },
+  ) {
+    return this.proposalsService.createProposal(body.signer, body.data);
   }
-});
 
-/**
- * Create proposal (on-chain tx)
- * POST /proposals
- */
-router.post('/', async (req: Request, res: Response) => {
-  try {
-    const proposal = await service.createProposal(
-      req.body,
-      req.body.signer, // or injected from auth middleware
-    );
-    res.status(201).json(proposal);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to create proposal' });
+  /* ─────────────────────────────────────────────
+   * Vote on a proposal
+   * ───────────────────────────────────────────── */
+  @Post('vote')
+  async vote(@Body() body: { voter: `0x${string}`; data: VoteDto }) {
+    return this.proposalsService.vote(body.voter, body.data);
   }
-});
 
-export default router;
+  /* ─────────────────────────────────────────────
+   * Get a single proposal
+   * ───────────────────────────────────────────── */
+  @Get(':id')
+  async getProposal(@Param('id') id: string) {
+    return this.proposalsService.getProposal(BigInt(id));
+  }
+
+  /* ─────────────────────────────────────────────
+   * Get votes for a proposal
+   * ───────────────────────────────────────────── */
+  @Get(':id/votes')
+  async getVotes(@Param('id') id: string) {
+    return this.proposalsService.getVotes(BigInt(id));
+  }
+
+  /* ─────────────────────────────────────────────
+   * Get results for a proposal
+   * ───────────────────────────────────────────── */
+  @Get(':id/results')
+  async getResults(@Param('id') id: string) {
+    return this.proposalsService.getResults(BigInt(id));
+  }
+}
