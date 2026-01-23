@@ -1,3 +1,4 @@
+// src/modules/treasury/treasury.routes.ts
 import { Router } from 'express';
 import { TreasuryController } from './treasury.controller';
 import { TreasuryService } from './treasury.service';
