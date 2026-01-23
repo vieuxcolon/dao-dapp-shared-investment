@@ -1,35 +1,59 @@
-// src/modules/votes/votes.controller.ts
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+// backend/src/modules/votes/votes.controller.ts
+import { Router, Request, Response } from 'express';
 import { VotesService } from './votes.service';
 import { VoteDto } from './dto';
 
-@Controller('votes')
 export class VotesController {
-  constructor(private readonly votesService: VotesService) {}
+  public router: Router;
+  private votesService: VotesService;
 
-  /* ─────────────────────────────────────────────
-   * Cast a vote
-   * ───────────────────────────────────────────── */
-  @Post()
-  async castVote(@Body() body: { voter: `0x${string}`; vote: VoteDto }) {
-    const { voter, vote } = body;
-    return this.votesService.castVote(voter, vote);
+  constructor(votesService: VotesService) {
+    this.router = Router();
+    this.votesService = votesService;
+    this.registerRoutes();
   }
 
-  /* ─────────────────────────────────────────────
-   * Get all votes for a proposal
-   * ───────────────────────────────────────────── */
-  @Get(':proposalId')
-  async getVotes(@Param('proposalId') proposalId: string) {
-    return this.votesService.getVotes(BigInt(proposalId));
-  }
+  private registerRoutes() {
+    // ─────────────────────────────
+    // Cast a vote
+    // ─────────────────────────────
+    this.router.post('/', async (req: Request, res: Response) => {
+      try {
+        const { voter, data } = req.body as { voter: `0x${string}`, data: VoteDto };
+        const result = await this.votesService.vote(voter, data);
+        res.json(result);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to cast vote' });
+      }
+    });
 
-  /* ─────────────────────────────────────────────
-   * Get voting results for a proposal
-   * ───────────────────────────────────────────── */
-  @Get(':proposalId/results')
-  async getResults(@Param('proposalId') proposalId: string) {
-    return this.votesService.getResults(BigInt(proposalId));
+    // ─────────────────────────────
+    // Get votes for a proposal
+    // ─────────────────────────────
+    this.router.get('/:proposalId', async (req: Request, res: Response) => {
+      try {
+        const proposalId = BigInt(req.params.proposalId);
+        const result = await this.votesService.getVotes(proposalId);
+        res.json(result);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch votes' });
+      }
+    });
+
+    // ─────────────────────────────
+    // Get results for a proposal
+    // ─────────────────────────────
+    this.router.get('/:proposalId/results', async (req: Request, res: Response) => {
+      try {
+        const proposalId = BigInt(req.params.proposalId);
+        const result = await this.votesService.getResults(proposalId);
+        res.json(result);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch results' });
+      }
+    });
   }
 }
-
