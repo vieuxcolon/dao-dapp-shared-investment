@@ -1,36 +1,35 @@
-import { Router, Request, Response } from 'express';
+// src/modules/votes/votes.controller.ts
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { VotesService } from './votes.service';
+import { VoteDto } from './dto';
 
-const router = Router();
-const votesService = new VotesService();
+@Controller('votes')
+export class VotesController {
+  constructor(private readonly votesService: VotesService) {}
 
-/**
- * GET votes for a proposal
- * /votes/:proposalId
- */
-router.get('/:proposalId', async (req: Request, res: Response) => {
-  try {
-    const proposalId = BigInt(req.params.proposalId);
-    const votes = await votesService.getVotes(proposalId);
-    res.json(votes);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to fetch votes' });
+  /* ─────────────────────────────────────────────
+   * Cast a vote
+   * ───────────────────────────────────────────── */
+  @Post()
+  async castVote(@Body() body: { voter: `0x${string}`; vote: VoteDto }) {
+    const { voter, vote } = body;
+    return this.votesService.castVote(voter, vote);
   }
-});
 
-/**
- * Cast a vote
- * POST /votes
- */
-router.post('/', async (req: Request, res: Response) => {
-  try {
-    const vote = await votesService.castVote(req.body);
-    res.status(201).json(vote);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to cast vote' });
+  /* ─────────────────────────────────────────────
+   * Get all votes for a proposal
+   * ───────────────────────────────────────────── */
+  @Get(':proposalId')
+  async getVotes(@Param('proposalId') proposalId: string) {
+    return this.votesService.getVotes(BigInt(proposalId));
   }
-});
 
-export default router;
+  /* ─────────────────────────────────────────────
+   * Get voting results for a proposal
+   * ───────────────────────────────────────────── */
+  @Get(':proposalId/results')
+  async getResults(@Param('proposalId') proposalId: string) {
+    return this.votesService.getResults(BigInt(proposalId));
+  }
+}
+
