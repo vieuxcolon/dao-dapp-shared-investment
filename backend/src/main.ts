@@ -1,30 +1,25 @@
 // backend/src/main.ts
-import 'dotenv/config'; // Load .env variables
-import express from 'express';
-import cors from 'cors';
-import { startListeners } from './blockchain/eventListener';
-import treasuryRoutes from './modules/treasury/treasury.routes';
+import { App } from './app';
+import { config } from './config/env';
+import { PrismaClient } from '@prisma/client';
 
-const app = express();
+async function bootstrap() {
+  const prisma = new PrismaClient();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+  try {
+    // Connect to the database
+    await prisma.$connect();
+    console.log('Database connected');
 
-// Start blockchain event listeners
-startListeners();
+    // Initialize the app
+    const app = new App(prisma);
+    await app.init();
 
-// Mount treasury API routes
-app.use('/treasury', treasuryRoutes);
+    console.log(`🚀 Server running on http://localhost:${config.port}`);
+  } catch (error) {
+    console.error(' Failed to start application:', error);
+    process.exit(1);
+  }
+}
 
-// Health check / root endpoint
-app.get('/', (req, res) => {
-  res.send('DAO Backend is running 🚀');
-});
-
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`);
-});
-
+bootstrap();
