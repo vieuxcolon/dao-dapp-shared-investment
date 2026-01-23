@@ -1,41 +1,25 @@
 // src/blockchain/viemClient.ts
-import { createPublicClient, createWalletClient, http } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { sepolia } from 'viem/chains';
-import { env } from '../config/env';
+import { createPublicClient, createWalletClient, custom, http } from 'viem';
+import { mainnet } from 'viem/chains';
+import { PrivateKeyAccount } from 'viem/accounts';
 
-/* ─────────────────────────────────────────────
- * Chain
- * ───────────────────────────────────────────── */
-export const chain = sepolia;
-
-/* ─────────────────────────────────────────────
- * Public client (READS, EVENTS, RECEIPTS)
- * ───────────────────────────────────────────── */
+// ──────────────────────────────
+// Public client (read-only)
+// ──────────────────────────────
 export const publicClient = createPublicClient({
-  chain,
-  transport: http(env.RPC_URL),
+  chain: mainnet,
+  transport: http(process.env.RPC_URL!),
 });
 
-/* ─────────────────────────────────────────────
- * Wallet client (WRITES ONLY)
- * ───────────────────────────────────────────── */
-const account = privateKeyToAccount(env.PRIVATE_KEY as `0x${string}`);
-
+// ──────────────────────────────
+// Wallet client (signing transactions)
+// ──────────────────────────────
 export const walletClient = createWalletClient({
-  chain,
-  transport: http(env.RPC_URL),
-  account,
+  chain: mainnet,
+  transport: http(process.env.RPC_URL!),
+  account:
+    process.env.PRIVATE_KEY
+      ? new PrivateKeyAccount(process.env.PRIVATE_KEY)
+      : undefined,
 });
 
-/* ─────────────────────────────────────────────
- * Helpers
- * ───────────────────────────────────────────── */
-
-/**
- * Waits for a transaction to be mined
- * (walletClient does NOT do this in Viem 2.x)
- */
-export async function waitForTx(hash: `0x${string}`) {
-  return publicClient.waitForTransactionReceipt({ hash });
-}
