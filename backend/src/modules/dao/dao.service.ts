@@ -1,52 +1,63 @@
-// src/modules/dao/dao.service.ts
+// backend/src/modules/dao/dao.service.ts
 import { Injectable } from '@nestjs/common';
-import { publicClient, walletClient } from '../../blockchain/viemClient';
-import { investmentDAOContract } from '../../blockchain/contracts';
+import { walletClient, publicClient } from '../../blockchain/viemClient';
+import { daoContract } from '../../blockchain/contracts';
+import { DaoAction } from './dao.types';
 
 @Injectable()
 export class DaoService {
   /* ─────────────────────────────────────────────
-   * Create investment (WRITE)
+   * Get DAO general info (READ)
    * ───────────────────────────────────────────── */
-  async createInvestment(
-    name: string,
-    amount: bigint,
-    signer: `0x${string}`,
-  ): Promise<{ txHash: `0x${string}` }> {
-    const txHash = await walletClient.writeContract({
-      address: investmentDAOContract.address,
-      abi: investmentDAOContract.abi,
-      functionName: 'createInvestment',
-      args: [name, amount],
-      account: signer,
-    });
-
-    await publicClient.waitForTransactionReceipt({ hash: txHash });
-
-    return { txHash };
+  async getDaoInfo() {
+    try {
+      return await publicClient.readContract({
+        address: daoContract.address,
+        abi: daoContract.abi,
+        functionName: 'getDaoInfo',
+        args: [],
+      });
+    } catch (err) {
+      console.error('Error fetching DAO info:', err);
+      throw err;
+    }
   }
 
   /* ─────────────────────────────────────────────
-   * Get single investment (READ)
+   * Get all DAO members (READ)
    * ───────────────────────────────────────────── */
-  async getInvestment(investmentId: bigint) {
-    return publicClient.readContract({
-      address: investmentDAOContract.address,
-      abi: investmentDAOContract.abi,
-      functionName: 'getInvestment',
-      args: [investmentId],
-    });
+  async getMembers() {
+    try {
+      return await publicClient.readContract({
+        address: daoContract.address,
+        abi: daoContract.abi,
+        functionName: 'getMembers',
+        args: [],
+      });
+    } catch (err) {
+      console.error('Error fetching DAO members:', err);
+      throw err;
+    }
   }
 
   /* ─────────────────────────────────────────────
-   * Get all investments (READ)
+   * Execute a DAO action (WRITE)
    * ───────────────────────────────────────────── */
-  async getAllInvestments() {
-    return publicClient.readContract({
-      address: investmentDAOContract.address,
-      abi: investmentDAOContract.abi,
-      functionName: 'getAllInvestments',
-      args: [],
-    });
+  async executeAction(signer: `0x${string}`, action: DaoAction) {
+    try {
+      const txHash: `0x${string}` = await walletClient.writeContract({
+        address: daoContract.address,
+        abi: daoContract.abi,
+        functionName: 'executeAction',
+        args: [action.type, action.payload],
+        account: signer,
+      });
+
+      await walletClient.waitForTransactionReceipt({ hash: txHash });
+      return { success: true, txHash };
+    } catch (err) {
+      console.error('Error executing DAO action:', err);
+      throw err;
+    }
   }
 }
