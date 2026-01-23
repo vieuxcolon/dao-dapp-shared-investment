@@ -1,32 +1,52 @@
 // src/modules/dao/dao.service.ts
 import { Injectable } from '@nestjs/common';
-import { investmentDAOContract, walletClient } from '../../blockchain/contracts';
-import { parseEther } from 'viem';
+import { publicClient, walletClient } from '../../blockchain/viemClient';
+import { investmentDAOContract } from '../../blockchain/contracts';
 
 @Injectable()
 export class DaoService {
+  /* ─────────────────────────────────────────────
+   * Create investment (WRITE)
+   * ───────────────────────────────────────────── */
   async createInvestment(
-    creator: `0x${string}`,
-    amount: string,
-    metadata: string,
-  ): Promise<{ success: boolean; txHash: `0x${string}` }> {
-    const amountWei = parseEther(amount);
-
-    const txHash: `0x${string}` = await investmentDAOContract.write.createInvestment({
-      account: creator,
-      args: [amountWei, metadata],
+    name: string,
+    amount: bigint,
+    signer: `0x${string}`,
+  ): Promise<{ txHash: `0x${string}` }> {
+    const txHash = await walletClient.writeContract({
+      address: investmentDAOContract.address,
+      abi: investmentDAOContract.abi,
+      functionName: 'createInvestment',
+      args: [name, amount],
+      account: signer,
     });
 
-    await walletClient.waitForTransactionReceipt({ hash: txHash });
+    await publicClient.waitForTransactionReceipt({ hash: txHash });
 
-    return { success: true, txHash };
+    return { txHash };
   }
 
+  /* ─────────────────────────────────────────────
+   * Get single investment (READ)
+   * ───────────────────────────────────────────── */
   async getInvestment(investmentId: bigint) {
-    return investmentDAOContract.read.getInvestment([investmentId]);
+    return publicClient.readContract({
+      address: investmentDAOContract.address,
+      abi: investmentDAOContract.abi,
+      functionName: 'getInvestment',
+      args: [investmentId],
+    });
   }
 
+  /* ─────────────────────────────────────────────
+   * Get all investments (READ)
+   * ───────────────────────────────────────────── */
   async getAllInvestments() {
-    return investmentDAOContract.read.getAllInvestments();
+    return publicClient.readContract({
+      address: investmentDAOContract.address,
+      abi: investmentDAOContract.abi,
+      functionName: 'getAllInvestments',
+      args: [],
+    });
   }
 }
