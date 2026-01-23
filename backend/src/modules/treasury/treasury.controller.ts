@@ -1,42 +1,57 @@
-// src/modules/treasury/treasury.controller.ts
-import { Controller, Post, Get, Body } from '@nestjs/common';
+// backend/src/modules/treasury/treasury.controller.ts
+import { Router, Request, Response } from 'express';
 import { TreasuryService } from './treasury.service';
 
-@Controller('treasury')
 export class TreasuryController {
-  constructor(private readonly treasuryService: TreasuryService) {}
+  public router: Router;
+  private treasuryService: TreasuryService;
 
-  /* ─────────────────────────────────────────────
-   * Deposit funds
-   * ───────────────────────────────────────────── */
-  @Post('deposit')
-  async depositFunds(
-    @Body() body: { depositor: `0x${string}`; amount: string },
-  ) {
-    return this.treasuryService.depositFunds(
-      body.depositor,
-      BigInt(body.amount),
-    );
+  constructor(treasuryService: TreasuryService) {
+    this.router = Router();
+    this.treasuryService = treasuryService;
+    this.registerRoutes();
   }
 
-  /* ─────────────────────────────────────────────
-   * Withdraw funds
-   * ───────────────────────────────────────────── */
-  @Post('withdraw')
-  async withdrawFunds(
-    @Body() body: { recipient: `0x${string}`; amount: string },
-  ) {
-    return this.treasuryService.withdrawFunds(
-      body.recipient,
-      BigInt(body.amount),
-    );
-  }
+  private registerRoutes() {
+    // ─────────────────────────────
+    // Deposit funds
+    // ─────────────────────────────
+    this.router.post('/deposit', async (req: Request, res: Response) => {
+      try {
+        const { depositor, amount } = req.body as { depositor: `0x${string}`, amount: string };
+        const result = await this.treasuryService.deposit(depositor, BigInt(amount));
+        res.json(result);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to deposit funds' });
+      }
+    });
 
-  /* ─────────────────────────────────────────────
-   * Get treasury balance
-   * ───────────────────────────────────────────── */
-  @Get('balance')
-  async getBalance() {
-    return this.treasuryService.getBalance();
+    // ─────────────────────────────
+    // Withdraw funds
+    // ─────────────────────────────
+    this.router.post('/withdraw', async (req: Request, res: Response) => {
+      try {
+        const { recipient, amount } = req.body as { recipient: `0x${string}`, amount: string };
+        const result = await this.treasuryService.withdraw(recipient, BigInt(amount));
+        res.json(result);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to withdraw funds' });
+      }
+    });
+
+    // ─────────────────────────────
+    // Get treasury balance
+    // ─────────────────────────────
+    this.router.get('/balance', async (req: Request, res: Response) => {
+      try {
+        const balance = await this.treasuryService.getBalance();
+        res.json({ balance });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch balance' });
+      }
+    });
   }
 }
