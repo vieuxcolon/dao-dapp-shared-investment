@@ -1,56 +1,48 @@
 // src/modules/proposals/proposals.service.ts
 import { Injectable } from '@nestjs/common';
-import { governanceContract, walletClient } from '../../blockchain/contracts';
-import { Account } from 'viem';
+import { walletClient, governanceContract } from '../../blockchain/contracts';
 import { CreateProposalDto, VoteDto } from './dto';
-
-// Replace with the actual signer address from your wallet client or environment
-const SIGNER_ADDRESS = process.env.SIGNER_ADDRESS as `0x${string}`;
 
 @Injectable()
 export class ProposalsService {
-  constructor() {}
-
-  // ────────────── CREATE PROPOSAL ──────────────
-  async createProposal(data: CreateProposalDto) {
-    if (!SIGNER_ADDRESS) throw new Error('Signer address is not defined');
-
-    const txHash = await governanceContract.write.createProposal({
-      account: SIGNER_ADDRESS,
+  async createProposal(
+    signer: `0x${string}`,
+    data: CreateProposalDto,
+  ): Promise<{ success: boolean; txHash: `0x${string}` }> {
+    const txHash: `0x${string}` = await governanceContract.write.createProposal({
+      account: signer,
       args: [data.title, data.description],
     });
 
-    // Wait for transaction confirmation
     await walletClient.waitForTransactionReceipt({ hash: txHash });
 
     return { success: true, txHash };
   }
 
-  // ────────────── VOTE ON PROPOSAL ──────────────
-  async voteOnProposal(data: VoteDto) {
-    if (!SIGNER_ADDRESS) throw new Error('Signer address is not defined');
-
-    const txHash = await governanceContract.write.vote({
-      account: SIGNER_ADDRESS,
+  async vote(
+    voter: `0x${string}`,
+    data: VoteDto,
+  ): Promise<{ success: boolean; txHash: `0x${string}` }> {
+    const txHash: `0x${string}` = await governanceContract.write.vote({
+      account: voter,
       args: [data.proposalId, data.support, data.weight],
     });
 
-    // Wait for transaction confirmation
     await walletClient.waitForTransactionReceipt({ hash: txHash });
 
     return { success: true, txHash };
   }
 
-  // ────────────── READ PROPOSAL ──────────────
   async getProposal(proposalId: bigint) {
-    const proposal = await governanceContract.read.getProposal([proposalId]);
-    return proposal;
+    return governanceContract.read.getProposal([proposalId]);
   }
 
-  // ────────────── READ VOTES ──────────────
   async getVotes(proposalId: bigint) {
-    const votes = await governanceContract.read.getVotes([proposalId]);
-    return votes;
+    return governanceContract.read.getVotes([proposalId]);
+  }
+
+  async getResults(proposalId: bigint) {
+    return governanceContract.read.getResults([proposalId]);
   }
 }
 
