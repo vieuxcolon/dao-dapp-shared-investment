@@ -1,46 +1,45 @@
-import express, { Application } from 'express';
-import { json, urlencoded } from 'body-parser';
-import { config } from './config/env';
+import express, { Express } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
 
-// Services
-import { ProposalsService } from './modules/proposals/proposals.service';
-import { VotesService } from './modules/votes/votes.service';
-import { TreasuryService } from './modules/treasury/treasury.service';
-
-// Routers
-import createProposalsRouter from './modules/proposals/proposals.routes';
+// Import routers
+import { createProposalsRouter } from './modules/proposals/proposals.routes';
 import { createVotesRouter } from './modules/votes/votes.routes';
+import { createDaoRouter } from './modules/dao/dao.routes';
 import { createTreasuryRouter } from './modules/treasury/treasury.routes';
 
-export class App {
-  public app: Application;
+// App configuration
+export function createApp(): Express {
+  const app = express();
 
-  constructor() {
-    this.app = express();
-  }
+  // Middleware
+  app.use(cors());
+  app.use(helmet());
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(morgan('dev'));
 
-  public async init() {
-    this.setupMiddleware();
-    this.setupRoutes();
-  }
+  // ─────────────────────────────
+  // Routes
+  // ─────────────────────────────
+  app.use('/api/proposals', createProposalsRouter());
+  app.use('/api/votes', createVotesRouter());
+  app.use('/api/dao', createDaoRouter());
+  app.use('/api/treasury', createTreasuryRouter());
 
-  private setupMiddleware() {
-    this.app.use(json());
-    this.app.use(urlencoded({ extended: true }));
-  }
+  // Health check
+  app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
 
-  private setupRoutes() {
-    // Instantiate services
-    const proposalsService = new ProposalsService();
-    const votesService = new VotesService();
-    const treasuryService = new TreasuryService();
+  // 404 handler
+  app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 
-    // Mount module routers
-    this.app.use('/proposals', createProposalsRouter(proposalsService));
-    this.app.use('/votes', createVotesRouter(votesService));
-    this.app.use('/treasury', createTreasuryRouter(treasuryService));
+  // Error handler
+  app.use((err: any, _req: any, res: any, _next: any) => {
+    console.error(err);
+    res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
+  });
 
-    // Health check
-    this.app.get('/health', (req, res) => res.json({ status: 'ok' }));
-  }
+  return app;
 }
+
