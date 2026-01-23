@@ -1,49 +1,17 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import { TreasuryController } from './treasury.controller';
 import { TreasuryService } from './treasury.service';
 
 export function createTreasuryRouter(treasuryService: TreasuryService) {
   const router = Router();
+  const controller = new TreasuryController(treasuryService);
 
-  /* ─────────────────────────────
-   * Get treasury balance (GET /balance)
-   * ───────────────────────────── */
-  router.get('/balance', async (req: Request, res: Response) => {
-    try {
-      const balance = await treasuryService.getBalance();
-      res.json({ success: true, data: balance });
-    } catch (err: any) {
-      console.error('Get balance error:', err);
-      res.status(500).json({ success: false, error: err.message });
-    }
-  });
-
-  /* ─────────────────────────────
-   * Deposit funds (POST /deposit)
-   * ───────────────────────────── */
-  router.post('/deposit', async (req: Request, res: Response) => {
-    try {
-      const { amount, depositor } = req.body as { amount: string; depositor: `0x${string}` };
-      const result = await treasuryService.depositFunds(depositor, BigInt(amount));
-      res.json({ success: true, data: result });
-    } catch (err: any) {
-      console.error('Deposit error:', err);
-      res.status(500).json({ success: false, error: err.message });
-    }
-  });
-
-  /* ─────────────────────────────
-   * Withdraw funds (POST /withdraw)
-   * ───────────────────────────── */
-  router.post('/withdraw', async (req: Request, res: Response) => {
-    try {
-      const { amount, recipient } = req.body as { amount: string; recipient: `0x${string}` };
-      const result = await treasuryService.withdrawFunds(recipient, BigInt(amount));
-      res.json({ success: true, data: result });
-    } catch (err: any) {
-      console.error('Withdraw error:', err);
-      res.status(500).json({ success: false, error: err.message });
-    }
-  });
+  // ─────────────────────────────
+  // Treasury routes
+  // ─────────────────────────────
+  router.post('/deposit', (req, res) => controller.deposit(req, res));
+  router.post('/withdraw', (req, res) => controller.withdraw(req, res));
+  router.get('/balance', (req, res) => controller.getBalance(req, res));
 
   return router;
 }
