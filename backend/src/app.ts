@@ -1,45 +1,36 @@
-import express, { Express } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
+/* ─────────────────────────────────────────────
+ * app.ts
+ * ───────────────────────────────────────────── */
 
-// Import routers
+import express from 'express';
+import helmet from 'helmet';  // make sure to install: npm install helmet
+import morgan from 'morgan';  // make sure to install: npm install morgan
+
+// Routes
 import { createProposalsRouter } from './modules/proposals/proposals.routes';
-import { createVotesRouter } from './modules/votes/votes.routes';
-import { createDaoRouter } from './modules/dao/dao.routes';
+import createVotesRouter from './modules/votes/votes.routes'; // default export assumed
+import { createDaoRouter } from './modules/dao/dao.routes';   // make sure dao.routes exports this
 import { createTreasuryRouter } from './modules/treasury/treasury.routes';
 
-// App configuration
-export function createApp(): Express {
-  const app = express();
+import { ProposalsService } from './modules/proposals/proposals.service';
+import { TreasuryService } from './modules/treasury/treasury.service';
 
-  // Middleware
-  app.use(cors());
-  app.use(helmet());
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  app.use(morgan('dev'));
+export const app = express();
 
-  // ─────────────────────────────
-  // Routes
-  // ─────────────────────────────
-  app.use('/api/proposals', createProposalsRouter());
-  app.use('/api/votes', createVotesRouter());
-  app.use('/api/dao', createDaoRouter());
-  app.use('/api/treasury', createTreasuryRouter());
+app.use(express.json());
+app.use(helmet());
+app.use(morgan('dev'));
 
-  // Health check
-  app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
+// Initialize services
+const proposalsService = new ProposalsService();
+const treasuryService = new TreasuryService();
 
-  // 404 handler
-  app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
+// Mount routers with services
+app.use('/api/proposals', createProposalsRouter(proposalsService));
+app.use('/api/votes', createVotesRouter()); // default export assumed
+app.use('/api/dao', createDaoRouter());     // adjust if dao router requires service
+app.use('/api/treasury', createTreasuryRouter(treasuryService));
 
-  // Error handler
-  app.use((err: any, _req: any, res: any, _next: any) => {
-    console.error(err);
-    res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
-  });
-
-  return app;
-}
-
+app.get('/', (_, res) => {
+  res.send('DAO Dapp Backend Running 🚀');
+});
