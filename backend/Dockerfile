@@ -3,9 +3,10 @@
 # ----------------------------
 FROM node:22-alpine AS builder
 
+# Set working directory
 WORKDIR /app
 
-# Copy only package files first (for caching)
+# Copy package files first for caching
 COPY backend/package*.json ./
 
 # Install dependencies
@@ -33,8 +34,9 @@ COPY backend/package*.json ./
 # Install only production dependencies
 RUN npm install --production
 
-# Expose backend port (update as needed)
+# Expose backend port (match ENV.PORT or default 4000)
 EXPOSE 4000
 
-# Default command
-CMD ["node", "dist/index.js"]  # replace index.js with your main file
+# Default command to run the backend
+CMD ["node", "dist/main.js"]  # replace main.js with your compiled entry point
+
