@@ -1,24 +1,18 @@
-// backend/src/main.ts
-import { App } from './app';
-import { config } from './config/env';
-import { startBlockchainEventListeners } from './blockchain/eventListener';
+import 'reflect-metadata'; // Needed if using NestJS decorators or DI patterns
+import { config as envConfig } from './config/env'; // Make sure your env exports a "config" function or object
+import { createApp } from './app';
+
+const PORT = envConfig.PORT || 4000;
 
 async function bootstrap() {
-  try {
-    const appInstance = new App();
-    await appInstance.init();
+  const app = createApp();
 
-    // Start listening on port
-    appInstance.app.listen(config.PORT, () => {
-      console.log(` Server running at http://localhost:${config.PORT}`);
-    });
-
-    // Start blockchain event listeners
-    startBlockchainEventListeners();
-  } catch (error) {
-    console.error('Failed to start application:', error);
-    process.exit(1);
-  }
+  app.listen(PORT, () => {
+    console.log(` Server running on http://localhost:${PORT}`);
+  });
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Error starting server:', err);
+  process.exit(1);
+});
