@@ -1,95 +1,82 @@
 // src/blockchain/eventListener.ts
-import { decodeEventLog } from 'viem';
-import { client, investmentDAOContract } from './contracts';
+import { publicClient } from './viemClient';
+import {
+  governanceContract,
+  investmentDAOContract,
+  treasuryContract,
+} from './contracts';
 
-export function startListeners() {
-  const address = investmentDAOContract.address;
-  const abi = investmentDAOContract.abi;
+/**
+ * Starts all blockchain event listeners
+ * Call once during app bootstrap
+ */
+export function startBlockchainEventListeners() {
+  watchGovernanceEvents();
+  watchTreasuryEvents();
+  watchInvestmentDAOEvents();
+}
 
-  // ─────────────────────────────────────────────
-  // ProposalCreated
-  // ─────────────────────────────────────────────
-  client.watchContractEvent({
-    address,
-    abi,
+/* ─────────────────────────────────────────────
+ * Governance Events
+ * ───────────────────────────────────────────── */
+function watchGovernanceEvents() {
+  publicClient.watchContractEvent({
+    ...governanceContract,
     eventName: 'ProposalCreated',
     onLogs(logs) {
       for (const log of logs) {
-        const decoded = decodeEventLog({
-          abi,
-          data: log.data,
-          topics: log.topics,
-        });
-
-        if (decoded.eventName !== 'ProposalCreated') continue;
-
-        const { proposalId, proposer } = decoded.args as {
-          proposalId: bigint;
-          proposer: `0x${string}`;
-        };
-
-        console.log('ProposalCreated', { proposalId, proposer });
+        console.log(' ProposalCreated:', log.args);
+        // TODO: persist to DB / trigger off-chain logic
       }
     },
   });
 
-  // ─────────────────────────────────────────────
-  // VoteCast
-  // ─────────────────────────────────────────────
-  client.watchContractEvent({
-    address,
-    abi,
+  publicClient.watchContractEvent({
+    ...governanceContract,
     eventName: 'VoteCast',
     onLogs(logs) {
       for (const log of logs) {
-        const decoded = decodeEventLog({
-          abi,
-          data: log.data,
-          topics: log.topics,
-        });
+        console.log(' VoteCast:', log.args);
+      }
+    },
+  });
+}
 
-        if (decoded.eventName !== 'VoteCast') continue;
-
-        const { voter, proposalId, support, weight } = decoded.args as {
-          voter: `0x${string}`;
-          proposalId: bigint;
-          support: boolean;
-          weight: bigint;
-        };
-
-        console.log('VoteCast', {
-          voter,
-          proposalId,
-          support,
-          weight,
-        });
+/* ─────────────────────────────────────────────
+ * Treasury Events
+ * ───────────────────────────────────────────── */
+function watchTreasuryEvents() {
+  publicClient.watchContractEvent({
+    ...treasuryContract,
+    eventName: 'Deposit',
+    onLogs(logs) {
+      for (const log of logs) {
+        console.log(' Deposit:', log.args);
       }
     },
   });
 
-  // ─────────────────────────────────────────────
-  // Transfer
-  // ─────────────────────────────────────────────
-  client.watchContractEvent({
-    address,
-    abi,
-    eventName: 'Transfer',
+  publicClient.watchContractEvent({
+    ...treasuryContract,
+    eventName: 'Withdraw',
     onLogs(logs) {
       for (const log of logs) {
-        const decoded = decodeEventLog({
-          abi,
-          data: log.data,
-          topics: log.topics,
-        });
+        console.log(' Withdraw:', log.args);
+      }
+    },
+  });
+}
 
-        if (decoded.eventName !== 'Transfer') continue;
-
-        const { from, amount } = decoded.args as {
-          from: `0x${string}`;
-          amount: bigint;
-        };
-
-        console.log('Transfer', { from, amount });
+/* ─────────────────────────────────────────────
+ * Investment DAO Events
+ * ───────────────────────────────────────────── */
+function watchInvestmentDAOEvents() {
+  publicClient.watchContractEvent({
+    ...investmentDAOContract,
+    eventName: 'InvestmentCreated',
+    onLogs(logs) {
+      for (const log of logs) {
+        console.log(' InvestmentCreated:', log.args);
       }
     },
   });
