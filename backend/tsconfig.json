@@ -3,8 +3,8 @@
     /* ─────────────────────────────────────────────
      * Language & Runtime
      * ───────────────────────────────────────────── */
-    "target": "ES2022",                  // Required for Error.cause, BigInt, viem
-    "lib": ["ES2022"],
+    "target": "ES2022",                  
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "commonjs",
     "moduleResolution": "node",
 
@@ -22,7 +22,7 @@
     "types": ["node"],
 
     /* ─────────────────────────────────────────────
-     * Strictness (kept as-is, excellent setup)
+     * Strictness (kept intentionally strict)
      * ───────────────────────────────────────────── */
     "strict": true,
     "noImplicitAny": true,
@@ -36,7 +36,7 @@
     /* ─────────────────────────────────────────────
      * Build Quality
      * ───────────────────────────────────────────── */
-    "skipLibCheck": true                 // REQUIRED for viem / ox ecosystem
+    "skipLibCheck": true
   },
 
   "include": ["src"],
