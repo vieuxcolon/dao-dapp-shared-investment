@@ -1,17 +1,23 @@
 // src/modules/treasury/treasury.service.ts
 import { Injectable } from '@nestjs/common';
-import { treasuryContract, walletClient } from '../../blockchain/contracts';
-import { parseEther, formatEther } from 'viem';
+import { walletClient, publicClient } from '../../blockchain/viemClient';
+import { treasuryContract } from '../../blockchain/contracts';
 
 @Injectable()
 export class TreasuryService {
-  async deposit(amount: string, depositor: `0x${string}`) {
-    const value = parseEther(amount);
-
-    const txHash: `0x${string}` = await treasuryContract.write.deposit({
+  /* ─────────────────────────────────────────────
+   * Deposit funds into the treasury (WRITE)
+   * ───────────────────────────────────────────── */
+  async depositFunds(
+    depositor: `0x${string}`,
+    amount: bigint,
+  ): Promise<{ success: boolean; txHash: `0x${string}` }> {
+    const txHash: `0x${string}` = await walletClient.writeContract({
+      address: treasuryContract.address,
+      abi: treasuryContract.abi,
+      functionName: 'deposit',
+      args: [amount],
       account: depositor,
-      args: [],
-      value,
     });
 
     await walletClient.waitForTransactionReceipt({ hash: txHash });
@@ -19,13 +25,19 @@ export class TreasuryService {
     return { success: true, txHash };
   }
 
-  async withdraw(amount: string, recipient: `0x${string}`) {
-    const value = parseEther(amount);
-
-    const txHash: `0x${string}` = await treasuryContract.write.withdraw({
+  /* ─────────────────────────────────────────────
+   * Withdraw funds from the treasury (WRITE)
+   * ───────────────────────────────────────────── */
+  async withdrawFunds(
+    recipient: `0x${string}`,
+    amount: bigint,
+  ): Promise<{ success: boolean; txHash: `0x${string}` }> {
+    const txHash: `0x${string}` = await walletClient.writeContract({
+      address: treasuryContract.address,
+      abi: treasuryContract.abi,
+      functionName: 'withdraw',
+      args: [amount],
       account: recipient,
-      args: [],
-      value,
     });
 
     await walletClient.waitForTransactionReceipt({ hash: txHash });
@@ -33,8 +45,16 @@ export class TreasuryService {
     return { success: true, txHash };
   }
 
-  async getBalance() {
-    const balance: bigint = await treasuryContract.read.getBalance();
-    return formatEther(balance);
+  /* ─────────────────────────────────────────────
+   * Get treasury balance (READ)
+   * ───────────────────────────────────────────── */
+  async getBalance(): Promise<bigint> {
+    return publicClient.readContract({
+      address: treasuryContract.address,
+      abi: treasuryContract.abi,
+      functionName: 'getBalance',
+      args: [],
+    });
   }
 }
+
