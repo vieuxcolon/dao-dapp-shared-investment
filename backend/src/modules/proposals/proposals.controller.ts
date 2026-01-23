@@ -1,66 +1,46 @@
-import { Request, Response } from 'express';
 import { ProposalsService } from './proposals.service';
-import { CreateProposalDto, VoteDto } from './dto';
+import { CreateProposalDto, VoteDto } from './proposals.types';
+import { Request, Response } from 'express';
 
 export class ProposalsController {
-  private proposalsService: ProposalsService;
-
-  constructor(proposalsService: ProposalsService) {
-    this.proposalsService = proposalsService;
-  }
+  constructor(private readonly service: ProposalsService) {}
 
   async createProposal(req: Request, res: Response) {
     try {
-      const { signer, data } = req.body as { signer: `0x${string}`; data: CreateProposalDto };
-      const result = await this.proposalsService.createProposal(signer, data);
-      res.json({ success: true, data: result });
-    } catch (err: any) {
-      console.error('Create proposal error:', err);
-      res.status(500).json({ success: false, error: err.message });
+      const dto: CreateProposalDto = req.body;
+      const result = await this.service.createProposal(dto);
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
   }
 
   async vote(req: Request, res: Response) {
     try {
-      const { voter, data } = req.body as { voter: `0x${string}`; data: VoteDto };
-      const result = await this.proposalsService.vote(voter, data);
-      res.json({ success: true, data: result });
-    } catch (err: any) {
-      console.error('Vote error:', err);
-      res.status(500).json({ success: false, error: err.message });
+      const dto: VoteDto = req.body;
+      const result = await this.service.vote(dto);
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
   }
 
   async getProposal(req: Request, res: Response) {
-    try {
-      const proposalId = BigInt(req.params.id);
-      const proposal = await this.proposalsService.getProposal(proposalId);
-      res.json({ success: true, data: proposal });
-    } catch (err: any) {
-      console.error('Get proposal error:', err);
-      res.status(500).json({ success: false, error: err.message });
-    }
+    const id = BigInt(req.params.id);
+    const proposal = await this.service.getProposal(id);
+    if (proposal) res.json(proposal);
+    else res.status(404).json({ error: 'Proposal not found' });
   }
 
   async getVotes(req: Request, res: Response) {
-    try {
-      const proposalId = BigInt(req.params.id);
-      const votes = await this.proposalsService.getVotes(proposalId);
-      res.json({ success: true, data: votes });
-    } catch (err: any) {
-      console.error('Get votes error:', err);
-      res.status(500).json({ success: false, error: err.message });
-    }
+    const id = BigInt(req.params.id);
+    const votes = await this.service.getVotes(id);
+    res.json(votes);
   }
 
   async getResults(req: Request, res: Response) {
-    try {
-      const proposalId = BigInt(req.params.id);
-      const results = await this.proposalsService.getResults(proposalId);
-      res.json({ success: true, data: results });
-    } catch (err: any) {
-      console.error('Get results error:', err);
-      res.status(500).json({ success: false, error: err.message });
-    }
+    const id = BigInt(req.params.id);
+    const results = await this.service.getResults(id);
+    res.json(results);
   }
 }
