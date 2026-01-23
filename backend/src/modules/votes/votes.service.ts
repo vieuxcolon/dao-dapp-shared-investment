@@ -1,15 +1,13 @@
-// src/modules/votes/votes.service.ts
-import { Injectable } from '@nestjs/common';
-import { walletClient } from '../../blockchain/viemClient';
+// backend/src/modules/votes/votes.service.ts
+import { walletClient, publicClient } from '../../blockchain/viemClient';
 import { governanceContract } from '../../blockchain/contracts';
 import { VoteDto } from './dto';
 
-@Injectable()
 export class VotesService {
-  /* ─────────────────────────────────────────────
+  /* ─────────────────────────────
    * Cast a vote on a proposal (WRITE)
-   * ───────────────────────────────────────────── */
-  async castVote(voter: `0x${string}`, data: VoteDto) {
+   * ───────────────────────────── */
+  async vote(voter: `0x${string}`, data: VoteDto) {
     const txHash: `0x${string}` = await walletClient.writeContract({
       address: governanceContract.address,
       abi: governanceContract.abi,
@@ -23,11 +21,11 @@ export class VotesService {
     return { success: true, txHash };
   }
 
-  /* ─────────────────────────────────────────────
+  /* ─────────────────────────────
    * Get all votes for a proposal (READ)
-   * ───────────────────────────────────────────── */
+   * ───────────────────────────── */
   async getVotes(proposalId: bigint) {
-    return walletClient.readContract({
+    return publicClient.readContract({
       address: governanceContract.address,
       abi: governanceContract.abi,
       functionName: 'getVotes',
@@ -35,11 +33,11 @@ export class VotesService {
     });
   }
 
-  /* ─────────────────────────────────────────────
+  /* ─────────────────────────────
    * Get voting results for a proposal (READ)
-   * ───────────────────────────────────────────── */
+   * ───────────────────────────── */
   async getResults(proposalId: bigint) {
-    return walletClient.readContract({
+    return publicClient.readContract({
       address: governanceContract.address,
       abi: governanceContract.abi,
       functionName: 'getResults',
