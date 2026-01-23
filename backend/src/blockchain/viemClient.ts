@@ -2,27 +2,40 @@
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
-
 import { env } from '../config/env';
 
-/**
- * Public client
- * - used for reads
- * - used for waiting on receipts
- */
+/* ─────────────────────────────────────────────
+ * Chain
+ * ───────────────────────────────────────────── */
+export const chain = sepolia;
+
+/* ─────────────────────────────────────────────
+ * Public client (READS, EVENTS, RECEIPTS)
+ * ───────────────────────────────────────────── */
 export const publicClient = createPublicClient({
-  chain: sepolia,
+  chain,
   transport: http(env.RPC_URL),
 });
 
-/**
- * Wallet client
- * - used ONLY for sending transactions
- */
-export const account = privateKeyToAccount(env.DEPLOYER_PRIVATE_KEY);
+/* ─────────────────────────────────────────────
+ * Wallet client (WRITES ONLY)
+ * ───────────────────────────────────────────── */
+const account = privateKeyToAccount(env.PRIVATE_KEY as `0x${string}`);
 
 export const walletClient = createWalletClient({
-  chain: sepolia,
+  chain,
   transport: http(env.RPC_URL),
   account,
 });
+
+/* ─────────────────────────────────────────────
+ * Helpers
+ * ───────────────────────────────────────────── */
+
+/**
+ * Waits for a transaction to be mined
+ * (walletClient does NOT do this in Viem 2.x)
+ */
+export async function waitForTx(hash: `0x${string}`) {
+  return publicClient.waitForTransactionReceipt({ hash });
+}
