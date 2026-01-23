@@ -1,39 +1,42 @@
-import { Router, Request, Response } from 'express';
+// src/modules/treasury/treasury.controller.ts
+import { Controller, Post, Get, Body } from '@nestjs/common';
 import { TreasuryService } from './treasury.service';
 
-const router = Router();
-const treasuryService = new TreasuryService();
+@Controller('treasury')
+export class TreasuryController {
+  constructor(private readonly treasuryService: TreasuryService) {}
 
-// Get treasury balance
-router.get('/balance', async (req: Request, res: Response) => {
-  try {
-    const balance = await treasuryService.getBalance();
-    res.json({ balance });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch treasury balance' });
+  /* ─────────────────────────────────────────────
+   * Deposit funds
+   * ───────────────────────────────────────────── */
+  @Post('deposit')
+  async depositFunds(
+    @Body() body: { depositor: `0x${string}`; amount: string },
+  ) {
+    return this.treasuryService.depositFunds(
+      body.depositor,
+      BigInt(body.amount),
+    );
   }
-});
 
-// Deposit funds into treasury
-router.post('/deposit', async (req: Request, res: Response) => {
-  try {
-    const { amount, depositor } = req.body;
-    const result = await treasuryService.depositFunds(amount, depositor);
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to deposit funds' });
+  /* ─────────────────────────────────────────────
+   * Withdraw funds
+   * ───────────────────────────────────────────── */
+  @Post('withdraw')
+  async withdrawFunds(
+    @Body() body: { recipient: `0x${string}`; amount: string },
+  ) {
+    return this.treasuryService.withdrawFunds(
+      body.recipient,
+      BigInt(body.amount),
+    );
   }
-});
 
-// Withdraw funds from treasury
-router.post('/withdraw', async (req: Request, res: Response) => {
-  try {
-    const { amount, recipient } = req.body;
-    const result = await treasuryService.withdrawFunds(amount, recipient);
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to withdraw funds' });
+  /* ─────────────────────────────────────────────
+   * Get treasury balance
+   * ───────────────────────────────────────────── */
+  @Get('balance')
+  async getBalance() {
+    return this.treasuryService.getBalance();
   }
-});
-
-export default router;
+}
