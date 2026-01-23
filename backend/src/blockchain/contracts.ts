@@ -1,42 +1,44 @@
 // src/blockchain/contracts.ts
-import InvestmentDAOJson from '../../../artifacts/contracts/InvestmentDAO.sol/InvestmentDAO.json';
-import GovernanceJson from '../../../artifacts/contracts/Governance.sol/Governance.json';
-import TreasuryJson from '../../../artifacts/contracts/Treasury.sol/Treasury.json';
+import { Abi } from 'viem';
 
-/**
- * Contract addresses
- * Loaded from env to avoid hard-coding per network
- */
-export const CONTRACT_ADDRESSES = {
-  investmentDAO: process.env.INVESTMENT_DAO_ADDRESS as `0x${string}`,
-  governance: process.env.GOVERNANCE_ADDRESS as `0x${string}`,
-  treasury: process.env.TREASURY_ADDRESS as `0x${string}`,
-};
+import InvestmentDAOJson from '../../../artifacts/contracts/contracts/InvestmentDAO.sol/InvestmentDAO.json';
+import GovernanceJson from '../../../artifacts/contracts/contracts/Governance.sol/Governance.json';
+import TreasuryJson from '../../../artifacts/contracts/contracts/Treasury.sol/Treasury.json';
 
-/**
+/* ─────────────────────────────────────────────
+ * Contract Addresses
+ * ───────────────────────────────────────────── */
+export const INVESTMENT_DAO_ADDRESS =
+  process.env.INVESTMENT_DAO_ADDRESS as `0x${string}`;
+
+export const GOVERNANCE_ADDRESS =
+  process.env.GOVERNANCE_ADDRESS as `0x${string}`;
+
+export const TREASURY_ADDRESS =
+  process.env.TREASURY_ADDRESS as `0x${string}`;
+
+/* ─────────────────────────────────────────────
  * Contract ABIs
- */
-export const CONTRACT_ABIS = {
-  investmentDAO: InvestmentDAOJson.abi,
-  governance: GovernanceJson.abi,
-  treasury: TreasuryJson.abi,
-};
+ * ───────────────────────────────────────────── */
+export const investmentDAOAbi = InvestmentDAOJson.abi as Abi;
+export const governanceAbi = GovernanceJson.abi as Abi;
+export const treasuryAbi = TreasuryJson.abi as Abi;
 
-/**
- * Typed contract descriptors
- * (used by readContract / writeContract)
- */
+/* ─────────────────────────────────────────────
+ * Contract Descriptors (Viem 2.x style)
+ * ───────────────────────────────────────────── */
 export const investmentDAOContract = {
-  address: CONTRACT_ADDRESSES.investmentDAO,
-  abi: CONTRACT_ABIS.investmentDAO,
+  address: INVESTMENT_DAO_ADDRESS,
+  abi: investmentDAOAbi,
 } as const;
 
 export const governanceContract = {
-  address: CONTRACT_ADDRESSES.governance,
-  abi: CONTRACT_ABIS.governance,
+  address: GOVERNANCE_ADDRESS,
+  abi: governanceAbi,
 } as const;
 
 export const treasuryContract = {
-  address: CONTRACT_ADDRESSES.treasury,
-  abi: CONTRACT_ABIS.treasury,
+  address: TREASURY_ADDRESS,
+  abi: treasuryAbi,
 } as const;
+
