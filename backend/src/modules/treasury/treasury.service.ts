@@ -1,61 +1,25 @@
-// backend/src/modules/treasury/treasury.service.ts
+import { treasuryContract } from '../../blockchain/contracts';
 import { parseEther, formatEther } from 'viem';
-import {
-  client,
-  walletClient,
-  treasuryContract,
-} from '../../blockchain/contracts';
 
 export class TreasuryService {
-  // ─────────────────────────────────────────────
-  // Get treasury balance (read-only)
-  // ─────────────────────────────────────────────
-  async getBalance(): Promise<string> {
-    const balance = await treasuryContract.read.getBalance();
-    return formatEther(balance);
+  async depositFunds(amount: string, from: `0x${string}`) {
+    const txHash: `0x${string}` = await treasuryContract.write.deposit({
+      args: [parseEther(amount)], // viem requires bigint
+      account: from,
+    });
+    return txHash;
   }
 
-  // ─────────────────────────────────────────────
-  // Deposit ETH (on-chain tx)
-  // ─────────────────────────────────────────────
-  async deposit(amount: string, signer: `0x${string}`) {
-    const hash = await walletClient.writeContract({
-      address: treasuryContract.address,
-      abi: treasuryContract.abi,
-      functionName: 'deposit',
-      account: signer,
-      value: parseEther(amount),
+  async withdrawFunds(amount: string, to: `0x${string}`) {
+    const txHash: `0x${string}` = await treasuryContract.write.withdraw({
+      args: [parseEther(amount)],
+      account: to,
     });
-
-    const receipt = await client.waitForTransactionReceipt({ hash });
-
-    return {
-      success: true,
-      txHash: receipt.transactionHash,
-    };
+    return txHash;
   }
 
-  // ─────────────────────────────────────────────
-  // Withdraw ETH (on-chain tx)
-  // ─────────────────────────────────────────────
-  async withdraw(
-    to: `0x${string}`,
-    amount: string,
-    signer: `0x${string}`,
-  ) {
-    const hash = await walletClient.writeContract({
-      address: treasuryContract.address,
-      abi: treasuryContract.abi,
-      functionName: 'withdraw',
-      args: [to, parseEther(amount)],
-      account: signer,
-    });
-
-    const receipt = await client.waitForTransactionReceipt({ hash });
-
-    return {
-      success: true,
-      txHash: receipt.transactionHash,
-    };
+  async getBalance() {
+    const balance: bigint = await treasuryContract.read.getBalance();
+    return formatEther(balance); // convert bigint to string
   }
 }
