@@ -1,4 +1,4 @@
-// src/blockchain/eventListener.ts
+import { decodeEventLog } from 'viem';
 import { publicClient } from './viemClient';
 import {
   governanceContract,
@@ -25,8 +25,13 @@ function watchGovernanceEvents() {
     eventName: 'ProposalCreated',
     onLogs(logs) {
       for (const log of logs) {
-        console.log(' ProposalCreated:', log.args);
-        // TODO: persist to DB / trigger off-chain logic
+        const decoded = decodeEventLog({
+          abi: governanceContract.abi,
+          data: log.data,
+          topics: log.topics,
+        });
+
+        console.log(' ProposalCreated:', decoded.args);
       }
     },
   });
@@ -36,7 +41,13 @@ function watchGovernanceEvents() {
     eventName: 'VoteCast',
     onLogs(logs) {
       for (const log of logs) {
-        console.log(' VoteCast:', log.args);
+        const decoded = decodeEventLog({
+          abi: governanceContract.abi,
+          data: log.data,
+          topics: log.topics,
+        });
+
+        console.log(' VoteCast:', decoded.args);
       }
     },
   });
@@ -51,7 +62,13 @@ function watchTreasuryEvents() {
     eventName: 'Deposit',
     onLogs(logs) {
       for (const log of logs) {
-        console.log(' Deposit:', log.args);
+        const decoded = decodeEventLog({
+          abi: treasuryContract.abi,
+          data: log.data,
+          topics: log.topics,
+        });
+
+        console.log(' Deposit:', decoded.args);
       }
     },
   });
@@ -61,7 +78,13 @@ function watchTreasuryEvents() {
     eventName: 'Withdraw',
     onLogs(logs) {
       for (const log of logs) {
-        console.log(' Withdraw:', log.args);
+        const decoded = decodeEventLog({
+          abi: treasuryContract.abi,
+          data: log.data,
+          topics: log.topics,
+        });
+
+        console.log(' Withdraw:', decoded.args);
       }
     },
   });
@@ -76,7 +99,13 @@ function watchInvestmentDAOEvents() {
     eventName: 'InvestmentCreated',
     onLogs(logs) {
       for (const log of logs) {
-        console.log(' InvestmentCreated:', log.args);
+        const decoded = decodeEventLog({
+          abi: investmentDAOContract.abi,
+          data: log.data,
+          topics: log.topics,
+        });
+
+        console.log(' InvestmentCreated:', decoded.args);
       }
     },
   });
