@@ -1,3 +1,4 @@
+//backend/src/modules/proposals/proposals.controller.ts
 import { ProposalsService } from './proposals.service';
 import { CreateProposalDto, VoteDto } from './proposals.types';
 import { Request, Response } from 'express';
