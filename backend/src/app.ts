@@ -3,10 +3,10 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import { createProposalsRouter } from './modules/proposals/proposals.routes';
-import { createTreasuryRouter } from './modules/treasury/treasury.routes';
-import { createDaoRouter } from './modules/dao/dao.routes';
-import { createVotesRouter } from './modules/votes/votes.routes';
+import createProposalsRouter from './modules/proposals/proposals.routes';
+import createTreasuryRouter from './modules/treasury/treasury.routes';
+import createDaoRouter from './modules/dao/dao.routes';
+import votesRouter from './modules/votes/votes.routes';
 
 import { ProposalsService } from './modules/proposals/proposals.service';
 import { TreasuryService } from './modules/treasury/treasury.service';
@@ -16,20 +16,24 @@ import { VotesService } from './modules/votes/votes.service';
 export function createApp() {
   const app = express();
 
+  // Middleware
   app.use(express.json());
   app.use(helmet());
   app.use(morgan('dev'));
 
+  // Services
   const proposalsService = new ProposalsService();
   const treasuryService = new TreasuryService();
   const daoService = new DaoService();
   const votesService = new VotesService();
 
+  // Routes
   app.use('/api/proposals', createProposalsRouter(proposalsService));
-  app.use('/api/votes', createVotesRouter(votesService));
+  app.use('/api/votes', votesRouter); // default import fixed here
   app.use('/api/dao', createDaoRouter(daoService));
   app.use('/api/treasury', createTreasuryRouter(treasuryService));
 
+  // Health check
   app.get('/', (_req, res) => {
     res.send('Backend running 🚀');
   });
