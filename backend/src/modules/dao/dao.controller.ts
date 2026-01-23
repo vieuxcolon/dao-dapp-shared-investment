@@ -1,5 +1,4 @@
 //backend/src/modules/dao/dao.controller.ts
-// backend/src/modules/dao/dao.controller.ts
 import { Request, Response } from 'express';
 import { DaoService, Investment } from './dao.service';
 
