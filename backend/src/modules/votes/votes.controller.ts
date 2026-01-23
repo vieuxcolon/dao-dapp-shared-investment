@@ -3,32 +3,53 @@ import { Request, Response } from 'express';
 import { VotesService } from './votes.service';
 import { VoteDto as VoteDtoService } from './votes.service';
 
-// Define a plain interface for incoming JSON data
+// Plain interface for incoming JSON
 export interface IVoteDto {
-  proposalId: bigint | number | string; // accept number/string from client, convert to bigint
+  proposalId: bigint | number | string;
   support: boolean;
-  weight: bigint | number | string;     // same here
+  weight: bigint | number | string;
 }
 
 export class VotesController {
   constructor(private readonly votesService: VotesService) {}
 
   /* ─────────────────────────────
-   * Cast a vote
+   * Cast a vote with runtime validation
    * ───────────────────────────── */
   async vote(req: Request, res: Response) {
     try {
-      // Expect voter as 0x address string and data with proposalId, support & weight
-      const { voter, data } = req.body as { voter: `0x${string}`; data: IVoteDto };
+      const { voter, data } = req.body as { voter: string; data: IVoteDto };
 
-      // Map DTO to Service's expected VoteDto
-      const serviceVote: VoteDtoService = {
-        proposalId: BigInt(data.proposalId), // ensure bigint
-        support: data.support,
-        weight: BigInt(data.weight),         // ensure bigint
-      };
+      // Validate voter address
+      if (typeof voter !== 'string' || !/^0x[a-fA-F0-9]{40}$/.test(voter)) {
+        return res.status(400).json({ success: false, error: 'Invalid voter address' });
+      }
 
-      const result = await this.votesService.vote(voter, serviceVote);
+      // Validate support
+      if (typeof data.support !== 'boolean') {
+        return res.status(400).json({ success: false, error: '`support` must be boolean' });
+      }
+
+      // Validate proposalId
+      let proposalId: bigint;
+      try {
+        proposalId = BigInt(data.proposalId);
+      } catch {
+        return res.status(400).json({ success: false, error: '`proposalId` must be a valid integer' });
+      }
+
+      // Validate weight
+      let weight: bigint;
+      try {
+        weight = BigInt(data.weight);
+        if (weight < 0n) throw new Error();
+      } catch {
+        return res.status(400).json({ success: false, error: '`weight` must be a non-negative integer' });
+      }
+
+      const serviceVote: VoteDtoService = { proposalId, support: data.support, weight };
+
+      const result = await this.votesService.vote(voter as `0x${string}`, serviceVote);
       res.json({ success: true, data: result });
     } catch (err: any) {
       console.error('Vote error:', err);
