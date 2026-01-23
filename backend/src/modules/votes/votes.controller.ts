@@ -12,14 +12,10 @@ export class VotesController {
   async vote(req: Request, res: Response) {
     try {
       // Destructure expected properties from request body
-      const { voter, support, weight } = req.body as {
-        voter: `0x${string}`;
-        support: boolean;
-        weight: number | string;
-      };
+      const { voter, weight } = req.body as { voter: `0x${string}`; weight: number };
 
-      // Convert weight to bigint (required by VotesService)
-      const data: VoteDto = { support, weight: BigInt(weight) };
+      // Create VoteDto with only the expected properties
+      const data: VoteDto = { weight };
 
       const result = await this.votesService.vote(voter, data);
       res.json({ success: true, data: result });
