@@ -1,50 +1,54 @@
-// backend/src/app.ts
 import express, { Application, json } from 'express';
 import { json as bodyParserJson } from 'body-parser';
-import { DaoController } from './modules/dao/dao.controller';
-import { ProposalsController } from './modules/proposals/proposals.controller';
-import { VotesController } from './modules/votes/votes.controller';
-import { TreasuryController } from './modules/treasury/treasury.controller';
+
+// Module imports
 import { DaoService } from './modules/dao/dao.service';
+import { createDaoRouter } from './modules/dao/dao.routes';
+
 import { ProposalsService } from './modules/proposals/proposals.service';
+import { createProposalsRouter } from './modules/proposals/proposals.routes';
+
 import { VotesService } from './modules/votes/votes.service';
+import { createVotesRouter } from './modules/votes/votes.routes';
+
 import { TreasuryService } from './modules/treasury/treasury.service';
+import { createTreasuryRouter } from './modules/treasury/treasury.routes';
 
 export class App {
   public app: Application;
 
-  // Services
-  private daoService = new DaoService();
-  private proposalsService = new ProposalsService();
-  private votesService = new VotesService();
-  private treasuryService = new TreasuryService();
-
   constructor() {
     this.app = express();
     this.setupMiddleware();
-    this.setupControllers();
+    this.setupRoutes();
   }
 
   private setupMiddleware() {
     this.app.use(bodyParserJson());
     this.app.use(json());
-    // Add global middleware like CORS, logging, auth, etc.
+    // Add other global middleware here (CORS, logging, etc.)
   }
 
-  private setupControllers() {
-    const daoController = new DaoController(this.daoService);
-    const proposalsController = new ProposalsController(this.proposalsService);
-    const votesController = new VotesController(this.votesService);
-    const treasuryController = new TreasuryController(this.treasuryService);
+  private setupRoutes() {
+    // DAO
+    const daoService = new DaoService();
+    this.app.use('/api/dao', createDaoRouter(daoService));
 
-    this.app.use('/api/dao', daoController.router);
-    this.app.use('/api/proposals', proposalsController.router);
-    this.app.use('/api/votes', votesController.router);
-    this.app.use('/api/treasury', treasuryController.router);
+    // Proposals
+    const proposalsService = new ProposalsService();
+    this.app.use('/api/proposals', createProposalsRouter(proposalsService));
+
+    // Votes
+    const votesService = new VotesService();
+    this.app.use('/api/votes', createVotesRouter(votesService));
+
+    // Treasury
+    const treasuryService = new TreasuryService();
+    this.app.use('/api/treasury', createTreasuryRouter(treasuryService));
   }
 
   public async init() {
-    // Add async initialization if needed (e.g., blockchain listeners)
-    // Example: startBlockchainEventListeners();
+    // Any async initialization if needed
+    // e.g., blockchain clients, background tasks
   }
 }
