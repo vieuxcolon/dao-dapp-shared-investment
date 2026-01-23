@@ -1,6 +1,7 @@
 // backend/src/modules/votes/votes.controller.ts
 import { Request, Response } from 'express';
-import { VotesService, VoteDto } from './votes.service'; // Import DTO from service for type match
+import { VotesService } from './votes.service';
+import { VoteDto } from './dto';
 
 export class VotesController {
   constructor(private readonly votesService: VotesService) {}
@@ -14,11 +15,11 @@ export class VotesController {
       const { voter, support, weight } = req.body as {
         voter: `0x${string}`;
         support: boolean;
-        weight: number;
+        weight: number | string;
       };
 
-      // Construct VoteDto in correct shape expected by service
-      const data: VoteDto = { support, weight };
+      // Convert weight to bigint (required by VotesService)
+      const data: VoteDto = { support, weight: BigInt(weight) };
 
       const result = await this.votesService.vote(voter, data);
       res.json({ success: true, data: result });
@@ -56,3 +57,4 @@ export class VotesController {
     }
   }
 }
+
