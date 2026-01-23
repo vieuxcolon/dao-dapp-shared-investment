@@ -1,8 +1,6 @@
 // backend/src/modules/votes/votes.controller.ts
-// backend/src/modules/votes/votes.controller.ts
 import { Request, Response } from 'express';
-import { VotesService } from './votes.service';
-import { VoteDto } from './dto';
+import { VotesService, VoteDto } from './votes.service'; // Import DTO from service for type match
 
 export class VotesController {
   constructor(private readonly votesService: VotesService) {}
@@ -12,13 +10,21 @@ export class VotesController {
    * ───────────────────────────── */
   async vote(req: Request, res: Response) {
     try {
-      // Ensure correct types for voter and vote data
-      const { voter, data } = req.body as { voter: `0x${string}`; data: VoteDto };
+      // Destructure expected properties from request body
+      const { voter, support, weight } = req.body as {
+        voter: `0x${string}`;
+        support: boolean;
+        weight: number;
+      };
+
+      // Construct VoteDto in correct shape expected by service
+      const data: VoteDto = { support, weight };
+
       const result = await this.votesService.vote(voter, data);
       res.json({ success: true, data: result });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Vote error:', err);
-      res.status(500).json({ success: false, error: (err as Error).message });
+      res.status(500).json({ success: false, error: err.message });
     }
   }
 
@@ -30,9 +36,9 @@ export class VotesController {
       const proposalId = BigInt(req.params.proposalId);
       const votes = await this.votesService.getVotes(proposalId);
       res.json({ success: true, data: votes });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Get votes error:', err);
-      res.status(500).json({ success: false, error: (err as Error).message });
+      res.status(500).json({ success: false, error: err.message });
     }
   }
 
@@ -44,9 +50,9 @@ export class VotesController {
       const proposalId = BigInt(req.params.proposalId);
       const results = await this.votesService.getResults(proposalId);
       res.json({ success: true, data: results });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Get results error:', err);
-      res.status(500).json({ success: false, error: (err as Error).message });
+      res.status(500).json({ success: false, error: err.message });
     }
   }
 }
