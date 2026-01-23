@@ -1,48 +1,42 @@
-// backend/src/modules/dao/dao.service.ts
-import { Injectable } from '@nestjs/common';
-import { walletClient, publicClient } from '../../blockchain/viemClient';
-import { daoContract } from '../../blockchain/contracts';
-import { CreateInvestmentDto, InvestmentTxResult } from './dao.types';
+import { publicClient, walletClient } from '../../blockchain/viemClient';
+import { investmentDAOContract } from '../../blockchain/contracts';
 
-@Injectable()
+/**
+ * Temporary domain type until DB layer exists
+ */
+export interface Investment {
+  id: bigint;
+  creator: `0x${string}`;
+  amount: bigint;
+  timestamp: bigint;
+}
+
 export class DaoService {
-  // ───────────────
-  // Create investment (WRITE)
-  // ───────────────
-  async createInvestment(data: CreateInvestmentDto): Promise<InvestmentTxResult> {
-    const amountBigInt = BigInt(data.amount);
-
-    const txHash: `0x${string}` = await walletClient.writeContract({
-      address: daoContract.address,
-      abi: daoContract.abi,
-      functionName: 'invest',
-      args: [data.investor, amountBigInt, data.proposalId ?? 0n],
-      account: data.investor,
+  /**
+   * Creates a new investment via the DAO contract
+   */
+  async createInvestment(amount: bigint): Promise<void> {
+    const txHash = await walletClient.writeContract({
+      ...investmentDAOContract,
+      functionName: 'createInvestment',
+      args: [amount],
     });
 
-    await walletClient.waitForTransactionReceipt({ hash: txHash });
-
-    return { txHash, status: 'success' };
+    //  viem v1+: receipt is fetched from publicClient
+    await publicClient.waitForTransactionReceipt({ hash: txHash });
   }
 
-  // ───────────────
-  // Read investments (READ)
-  // ───────────────
-  async getInvestment(id: bigint) {
-    return publicClient.readContract({
-      address: daoContract.address,
-      abi: daoContract.abi,
-      functionName: 'getInvestment',
-      args: [id],
-    });
-  }
-
+  /**
+   * Reads investments from chain
+   * (placeholder until indexed storage exists)
+   */
   async getInvestments(): Promise<Investment[]> {
-    return publicClient.readContract({
-      address: daoContract.address,
-      abi: daoContract.abi,
-      functionName: 'getAllInvestments',
-      args: [],
+    const result = await publicClient.readContract({
+      ...investmentDAOContract,
+      functionName: 'getInvestments',
     });
+
+    // ABI-decoded but backend does not persist yet
+    return result as Investment[];
   }
 }
