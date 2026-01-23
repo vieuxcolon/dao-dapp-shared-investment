@@ -1,4 +1,3 @@
-// backend/src/modules/treasury/treasury.routes.ts
 import { Router, Request, Response } from 'express';
 import { TreasuryService } from './treasury.service';
 
@@ -23,8 +22,8 @@ export function createTreasuryRouter(treasuryService: TreasuryService) {
    * ───────────────────────────── */
   router.post('/deposit', async (req: Request, res: Response) => {
     try {
-      const { amount, signer } = req.body as { amount: string; signer: `0x${string}` };
-      const result = await treasuryService.deposit(BigInt(amount), signer);
+      const { amount, depositor } = req.body as { amount: string; depositor: `0x${string}` };
+      const result = await treasuryService.depositFunds(depositor, BigInt(amount));
       res.json({ success: true, data: result });
     } catch (err: any) {
       console.error('Deposit error:', err);
@@ -37,8 +36,8 @@ export function createTreasuryRouter(treasuryService: TreasuryService) {
    * ───────────────────────────── */
   router.post('/withdraw', async (req: Request, res: Response) => {
     try {
-      const { amount, signer } = req.body as { amount: string; signer: `0x${string}` };
-      const result = await treasuryService.withdraw(BigInt(amount), signer);
+      const { amount, recipient } = req.body as { amount: string; recipient: `0x${string}` };
+      const result = await treasuryService.withdrawFunds(recipient, BigInt(amount));
       res.json({ success: true, data: result });
     } catch (err: any) {
       console.error('Withdraw error:', err);
