@@ -3,13 +3,13 @@
  * ───────────────────────────────────────────── */
 
 /**
- * Investment object stored off-chain (in DB) for reference
+ * Investment stored off-chain (in DB) for reference
  */
 export interface Investment {
   id: bigint;                 // Unique investment ID
   investor: `0x${string}`;    // Ethereum address of the investor
   amount: bigint;             // Amount invested (on-chain, in wei)
-  timestamp: number;          // Unix timestamp of the investment
+  timestamp: number;          // Unix timestamp (ms since epoch)
   proposalId?: bigint;        // Optional linked proposal ID
 }
 
@@ -18,7 +18,7 @@ export interface Investment {
  */
 export interface CreateInvestmentDto {
   investor: `0x${string}`;   // Ethereum address of the investor
-  amount: string;            // Amount as string (ETH/wei), will be converted to bigint in service
+  amount: string;            // Amount as string (ETH or wei), will be converted to bigint in service
   proposalId?: bigint;       // Optional linked proposal ID
 }
 
@@ -26,7 +26,6 @@ export interface CreateInvestmentDto {
  * Return type for on-chain investment creation
  */
 export interface InvestmentTxResult {
-  txHash: `0x${string}`;     // Transaction hash of the blockchain operation
-  status: 'pending' | 'success' | 'failed'; // Status of the transaction
+  txHash: `0x${string}`;     // Transaction hash
+  status: 'pending' | 'success' | 'failed'; // Transaction status
 }
-
