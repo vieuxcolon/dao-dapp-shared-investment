@@ -2,9 +2,6 @@
 import { publicClient, walletClient } from '../../blockchain/viemClient';
 import { investmentDAOContract } from '../../blockchain/contracts';
 
-/**
- * Temporary domain type until DB layer exists
- */
 export interface Investment {
   id: bigint;
   creator: `0x${string}`;
@@ -15,21 +12,27 @@ export interface Investment {
 export class DaoService {
   /**
    * Creates a new investment via the DAO contract
+   * @param signer Wallet address executing the transaction
+   * @param amount Amount to invest
    */
-  async createInvestment(amount: bigint): Promise<void> {
-    const txHash = await walletClient.writeContract({
+  async createInvestment(
+    signer: `0x${string}`,
+    amount: bigint
+  ): Promise<{ success: boolean; txHash: `0x${string}` }> {
+    const txHash: `0x${string}` = await walletClient.writeContract({
       ...investmentDAOContract,
       functionName: 'createInvestment',
       args: [amount],
+      account: signer,
     });
 
-    //  viem v1+: receipt is fetched from publicClient
     await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+    return { success: true, txHash };
   }
 
   /**
-   * Reads investments from chain
-   * (placeholder until indexed storage exists)
+   * Reads all investments from the DAO contract
    */
   async getInvestments(): Promise<Investment[]> {
     const result = await publicClient.readContract({
@@ -37,7 +40,6 @@ export class DaoService {
       functionName: 'getInvestments',
     });
 
-    // ABI-decoded but backend does not persist yet
     return result as Investment[];
   }
 }
