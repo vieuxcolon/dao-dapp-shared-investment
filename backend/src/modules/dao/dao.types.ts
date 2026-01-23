@@ -6,31 +6,27 @@
  * Investment object stored off-chain (in DB) for reference
  */
 export interface Investment {
-  id: bigint;                     // Unique investment ID
-  investor: `0x${string}`;        // Ethereum address
-  amount: bigint;                  // Amount in wei
-  timestamp: bigint;               // Timestamp in milliseconds or seconds as bigint
-  proposalId?: bigint;             // Optional associated proposal
+  id: bigint;                 // Unique investment ID
+  investor: `0x${string}`;    // Ethereum address of the investor
+  amount: bigint;             // Amount invested (on-chain, in wei)
+  timestamp: number;          // Unix timestamp of the investment
+  proposalId?: bigint;        // Optional linked proposal ID
 }
 
 /**
- * CreateInvestment DTO (data received from frontend)
+ * DTO received from frontend to create a new investment
  */
 export interface CreateInvestmentDto {
-  investor: `0x${string}`;        // Ethereum address
-  amount: string;                  // Amount in ETH/wei as string
-  proposalId?: bigint;             // Optional associated proposal
+  investor: `0x${string}`;   // Ethereum address of the investor
+  amount: string;            // Amount as string (ETH/wei), will be converted to bigint in service
+  proposalId?: bigint;       // Optional linked proposal ID
 }
 
 /**
  * Return type for on-chain investment creation
  */
 export interface InvestmentTxResult {
-  txHash: `0x${string}`;          // Transaction hash
-  status: InvestmentTxStatus;      // Transaction status
+  txHash: `0x${string}`;     // Transaction hash of the blockchain operation
+  status: 'pending' | 'success' | 'failed'; // Status of the transaction
 }
 
-/**
- * Transaction status enum
- */
-export type InvestmentTxStatus = 'pending' | 'success' | 'failed';
