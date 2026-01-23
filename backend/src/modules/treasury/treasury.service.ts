@@ -5,49 +5,41 @@ import { treasuryContract } from '../../blockchain/contracts';
 
 @Injectable()
 export class TreasuryService {
-  /* ─────────────────────────────────────────────
-   * Deposit funds into the treasury (WRITE)
-   * ───────────────────────────────────────────── */
-  async depositFunds(
-    depositor: `0x${string}`,
-    amount: bigint,
-  ): Promise<{ success: boolean; txHash: `0x${string}` }> {
+  /* ─────────────────────────────
+   * Deposit funds (WRITE)
+   * ───────────────────────────── */
+  async deposit(signer: `0x${string}`, amount: bigint): Promise<{ success: boolean; txHash: `0x${string}` }> {
     const txHash: `0x${string}` = await walletClient.writeContract({
       address: treasuryContract.address,
       abi: treasuryContract.abi,
       functionName: 'deposit',
       args: [amount],
-      account: depositor,
+      account: signer,
     });
 
     await walletClient.waitForTransactionReceipt({ hash: txHash });
-
     return { success: true, txHash };
   }
 
-  /* ─────────────────────────────────────────────
-   * Withdraw funds from the treasury (WRITE)
-   * ───────────────────────────────────────────── */
-  async withdrawFunds(
-    recipient: `0x${string}`,
-    amount: bigint,
-  ): Promise<{ success: boolean; txHash: `0x${string}` }> {
+  /* ─────────────────────────────
+   * Withdraw funds (WRITE)
+   * ───────────────────────────── */
+  async withdraw(signer: `0x${string}`, amount: bigint): Promise<{ success: boolean; txHash: `0x${string}` }> {
     const txHash: `0x${string}` = await walletClient.writeContract({
       address: treasuryContract.address,
       abi: treasuryContract.abi,
       functionName: 'withdraw',
       args: [amount],
-      account: recipient,
+      account: signer,
     });
 
     await walletClient.waitForTransactionReceipt({ hash: txHash });
-
     return { success: true, txHash };
   }
 
-  /* ─────────────────────────────────────────────
+  /* ─────────────────────────────
    * Get treasury balance (READ)
-   * ───────────────────────────────────────────── */
+   * ───────────────────────────── */
   async getBalance(): Promise<bigint> {
     return publicClient.readContract({
       address: treasuryContract.address,
@@ -57,4 +49,3 @@ export class TreasuryService {
     });
   }
 }
-
