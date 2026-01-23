@@ -1,8 +1,14 @@
 // backend/src/modules/votes/votes.controller.ts
 import { Request, Response } from 'express';
 import { VotesService } from './votes.service';
-import { VoteDto as VoteDtoDTO } from './dto';
 import { VoteDto as VoteDtoService } from './votes.service';
+
+// Define a plain interface for incoming JSON data
+export interface IVoteDto {
+  proposalId: bigint | number | string; // accept number/string from client, convert to bigint
+  support: boolean;
+  weight: bigint | number | string;     // same here
+}
 
 export class VotesController {
   constructor(private readonly votesService: VotesService) {}
@@ -12,14 +18,14 @@ export class VotesController {
    * ───────────────────────────── */
   async vote(req: Request, res: Response) {
     try {
-      // Expect voter as 0x address string and data with proposalId, support & weight from DTO
-      const { voter, data } = req.body as { voter: `0x${string}`; data: VoteDtoDTO };
+      // Expect voter as 0x address string and data with proposalId, support & weight
+      const { voter, data } = req.body as { voter: `0x${string}`; data: IVoteDto };
 
       // Map DTO to Service's expected VoteDto
       const serviceVote: VoteDtoService = {
-        proposalId: BigInt(data.proposalId), // required by service
-        support: data.support,               // boolean
-        weight: BigInt(data.weight),         // bigint expected by service
+        proposalId: BigInt(data.proposalId), // ensure bigint
+        support: data.support,
+        weight: BigInt(data.weight),         // ensure bigint
       };
 
       const result = await this.votesService.vote(voter, serviceVote);
