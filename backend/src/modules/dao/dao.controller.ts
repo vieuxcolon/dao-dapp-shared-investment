@@ -1,10 +1,9 @@
 //backend/src/modules/dao/dao.controller.ts
-// src/modules/dao/dao.controller.ts
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param } from '@nestjs/common';
 import { DaoService, Investment } from './dao.service';
 import { CreateInvestmentDto } from './dto';
 
-@Controller('dao')
+@Controller('dao') // Base route for all DAO endpoints
 export class DaoController {
   constructor(private readonly daoService: DaoService) {}
 
@@ -15,10 +14,8 @@ export class DaoController {
   async createInvestment(
     @Body() data: CreateInvestmentDto
   ): Promise<{ success: boolean; txHash: `0x${string}` }> {
-    // Convert DTO amount to bigint
-    const amount = BigInt(data.amount);
-
-    return this.daoService.createInvestment(data.signer, amount);
+    // Pass signer and amount to the service
+    return this.daoService.createInvestment(data.signer, data.amount);
   }
 
   /* ─────────────────────────────
@@ -31,13 +28,11 @@ export class DaoController {
 
   /* ─────────────────────────────
    * Get a single investment by ID
-   * (optional filter on the array)
    * ───────────────────────────── */
   @Get('investments/:id')
   async getInvestment(@Param('id') id: string): Promise<Investment | null> {
-    const investments = await this.daoService.getInvestments();
-    const investmentId = BigInt(id);
-
-    return investments.find(inv => inv.id === investmentId) || null;
+    // Convert string ID to bigint
+    return this.daoService.getInvestment(BigInt(id));
   }
 }
+
