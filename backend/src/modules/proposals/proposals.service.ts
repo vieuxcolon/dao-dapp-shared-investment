@@ -1,6 +1,6 @@
-// src/modules/proposals/proposals.service.ts
 import { Injectable } from '@nestjs/common';
-import { walletClient, governanceContract } from '../../blockchain/contracts';
+import { walletClient, publicClient } from '../../blockchain/viemClient';
+import { governanceContract } from '../../blockchain/contracts';
 import { CreateProposalDto, VoteDto } from './dto';
 
 @Injectable()
@@ -9,9 +9,12 @@ export class ProposalsService {
     signer: `0x${string}`,
     data: CreateProposalDto,
   ): Promise<{ success: boolean; txHash: `0x${string}` }> {
-    const txHash: `0x${string}` = await governanceContract.write.createProposal({
-      account: signer,
+    const txHash = await walletClient.writeContract({
+      address: governanceContract.address,
+      abi: governanceContract.abi,
+      functionName: 'createProposal',
       args: [data.title, data.description],
+      account: signer,
     });
 
     await walletClient.waitForTransactionReceipt({ hash: txHash });
@@ -23,9 +26,12 @@ export class ProposalsService {
     voter: `0x${string}`,
     data: VoteDto,
   ): Promise<{ success: boolean; txHash: `0x${string}` }> {
-    const txHash: `0x${string}` = await governanceContract.write.vote({
-      account: voter,
+    const txHash = await walletClient.writeContract({
+      address: governanceContract.address,
+      abi: governanceContract.abi,
+      functionName: 'vote',
       args: [data.proposalId, data.support, data.weight],
+      account: voter,
     });
 
     await walletClient.waitForTransactionReceipt({ hash: txHash });
@@ -34,15 +40,29 @@ export class ProposalsService {
   }
 
   async getProposal(proposalId: bigint) {
-    return governanceContract.read.getProposal([proposalId]);
+    return publicClient.readContract({
+      address: governanceContract.address,
+      abi: governanceContract.abi,
+      functionName: 'getProposal',
+      args: [proposalId],
+    });
   }
 
   async getVotes(proposalId: bigint) {
-    return governanceContract.read.getVotes([proposalId]);
+    return publicClient.readContract({
+      address: governanceContract.address,
+      abi: governanceContract.abi,
+      functionName: 'getVotes',
+      args: [proposalId],
+    });
   }
 
   async getResults(proposalId: bigint) {
-    return governanceContract.read.getResults([proposalId]);
+    return publicClient.readContract({
+      address: governanceContract.address,
+      abi: governanceContract.abi,
+      functionName: 'getResults',
+      args: [proposalId],
+    });
   }
 }
-
