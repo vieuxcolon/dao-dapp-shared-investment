@@ -1,4 +1,4 @@
-//backend/src/modules/votes/votes.controller.ts
+// backend/src/modules/votes/votes.controller.ts
 import { Request, Response } from 'express';
 import { VotesService } from './votes.service';
 import { VoteDto as VoteDtoDTO } from './dto';
@@ -12,13 +12,14 @@ export class VotesController {
    * ───────────────────────────── */
   async vote(req: Request, res: Response) {
     try {
-      // Expect voter as 0x address string and data with support & weight from DTO
+      // Expect voter as 0x address string and data with proposalId, support & weight from DTO
       const { voter, data } = req.body as { voter: `0x${string}`; data: VoteDtoDTO };
 
       // Map DTO to Service's expected VoteDto
       const serviceVote: VoteDtoService = {
-        support: data.support,       // boolean or whatever type service expects
-        weight: data.weight,         // number or bigint as expected by service
+        proposalId: BigInt(data.proposalId), // required by service
+        support: data.support,               // boolean
+        weight: BigInt(data.weight),         // bigint expected by service
       };
 
       const result = await this.votesService.vote(voter, serviceVote);
@@ -44,7 +45,7 @@ export class VotesController {
   }
 
   /* ─────────────────────────────
-   * Get results for a proposal
+   * Get voting results for a proposal
    * ───────────────────────────── */
   async getResults(req: Request, res: Response) {
     try {
@@ -57,4 +58,3 @@ export class VotesController {
     }
   }
 }
-
