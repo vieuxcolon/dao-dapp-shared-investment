@@ -1,17 +1,15 @@
-import express, { Application, json } from 'express';
-import { json as bodyParserJson } from 'body-parser';
+import express, { Application } from 'express';
+import { json, urlencoded } from 'body-parser';
+import { config } from './config/env';
 
-// Module imports
-import { DaoService } from './modules/dao/dao.service';
-import { createDaoRouter } from './modules/dao/dao.routes';
-
+// Services
 import { ProposalsService } from './modules/proposals/proposals.service';
-import { createProposalsRouter } from './modules/proposals/proposals.routes';
-
 import { VotesService } from './modules/votes/votes.service';
-import { createVotesRouter } from './modules/votes/votes.routes';
-
 import { TreasuryService } from './modules/treasury/treasury.service';
+
+// Routers
+import createProposalsRouter from './modules/proposals/proposals.routes';
+import { createVotesRouter } from './modules/votes/votes.routes';
 import { createTreasuryRouter } from './modules/treasury/treasury.routes';
 
 export class App {
@@ -19,36 +17,30 @@ export class App {
 
   constructor() {
     this.app = express();
+  }
+
+  public async init() {
     this.setupMiddleware();
     this.setupRoutes();
   }
 
   private setupMiddleware() {
-    this.app.use(bodyParserJson());
     this.app.use(json());
-    // Add other global middleware here (CORS, logging, etc.)
+    this.app.use(urlencoded({ extended: true }));
   }
 
   private setupRoutes() {
-    // DAO
-    const daoService = new DaoService();
-    this.app.use('/api/dao', createDaoRouter(daoService));
-
-    // Proposals
+    // Instantiate services
     const proposalsService = new ProposalsService();
-    this.app.use('/api/proposals', createProposalsRouter(proposalsService));
-
-    // Votes
     const votesService = new VotesService();
-    this.app.use('/api/votes', createVotesRouter(votesService));
-
-    // Treasury
     const treasuryService = new TreasuryService();
-    this.app.use('/api/treasury', createTreasuryRouter(treasuryService));
-  }
 
-  public async init() {
-    // Any async initialization if needed
-    // e.g., blockchain clients, background tasks
+    // Mount module routers
+    this.app.use('/proposals', createProposalsRouter(proposalsService));
+    this.app.use('/votes', createVotesRouter(votesService));
+    this.app.use('/treasury', createTreasuryRouter(treasuryService));
+
+    // Health check
+    this.app.get('/health', (req, res) => res.json({ status: 'ok' }));
   }
 }
