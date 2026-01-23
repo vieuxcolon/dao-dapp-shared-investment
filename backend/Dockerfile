@@ -1,9 +1,8 @@
 # ----------------------------
-# Stage 1: Builder
+# Stage 1: Build
 # ----------------------------
 FROM node:22-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files first for caching
@@ -12,31 +11,28 @@ COPY backend/package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the backend source code
+# Copy source code
 COPY backend/ ./
 
-# Build TypeScript
-RUN npm run build   # assumes you have "build" script in backend/package.json
+# Compile TypeScript
+RUN npm run build
 
 # ----------------------------
-# Stage 2: Runtime
+# Stage 2: Production runtime
 # ----------------------------
 FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy built backend from builder
+# Copy compiled backend and node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 
-# Copy package.json & package-lock.json for running
+# Copy package.json for runtime scripts (optional)
 COPY backend/package*.json ./
 
-# Install only production dependencies
-RUN npm install --production
-
-# Expose backend port (match ENV.PORT or default 4000)
+# Expose backend port
 EXPOSE 4000
 
-# Default command to run the backend
-CMD ["node", "dist/main.js"]  # replace main.js with your compiled entry point
-
+# Start the backend
+CMD ["node", "dist/main.js"]
