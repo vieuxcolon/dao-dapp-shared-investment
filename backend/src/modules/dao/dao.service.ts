@@ -1,31 +1,33 @@
-// backend/src/modules/dao/dao.service.ts
+// src/modules/dao/dao.service.ts
 import { parseEther } from 'viem';
-import { daoContract, client, walletClient } from '../../blockchain/contracts';
+import { client, investmentDAOContract } from '../../blockchain/contracts';
 
 export class DAOService {
+  // ─────────────────────────────────────────────
   // Create a new investment
+  // ─────────────────────────────────────────────
   async createInvestment(amount: string, investor: `0x${string}`) {
-    const tx = await walletClient.writeContract({
-      client: walletClient,
-      address: daoContract.address,
-      abi: daoContract.abi,
+    const hash = await client.writeContract({
+      ...investmentDAOContract,
       functionName: 'createInvestment',
       args: [parseEther(amount)],
       account: investor,
     });
 
-    return { success: true, txHash: tx.hash };
+    await client.waitForTransactionReceipt({ hash });
+
+    return { success: true, txHash: hash };
   }
 
+  // ─────────────────────────────────────────────
   // Fetch all investments
+  // ─────────────────────────────────────────────
   async getInvestments(): Promise<any[]> {
     const investments = await client.readContract({
-      address: daoContract.address,
-      abi: daoContract.abi,
+      ...investmentDAOContract,
       functionName: 'getInvestments',
     });
 
-    return investments;
+    return investments as any[];
   }
 }
-
