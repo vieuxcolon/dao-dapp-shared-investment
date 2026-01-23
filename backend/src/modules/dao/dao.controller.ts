@@ -1,61 +1,45 @@
-// backend/src/modules/dao/dao.controller.ts
-import { Router, Request, Response } from 'express';
+//backend/src/modules/dao/dao.controller.ts
+import { Request, Response } from 'express';
 import { DaoService } from './dao.service';
+import { CreateInvestmentDto } from './dao.types';
 
 export class DaoController {
-  public router: Router;
   private daoService: DaoService;
 
   constructor(daoService: DaoService) {
-    this.router = Router();
     this.daoService = daoService;
-    this.registerRoutes();
   }
 
-  private registerRoutes() {
-    // ─────────────────────────────
-    // Create investment
-    // ─────────────────────────────
-    this.router.post('/investments', async (req: Request, res: Response) => {
-      try {
-        const { name, amount, signer } = req.body;
-        const result = await this.daoService.createInvestment(
-          name,
-          BigInt(amount),
-          signer
-        );
-        res.json(result);
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Failed to create investment' });
-      }
-    });
+  async createInvestment(req: Request, res: Response) {
+    try {
+      const data = req.body as CreateInvestmentDto;
+      const result = await this.daoService.createInvestment(data);
+      res.json({ success: true, data: result });
+    } catch (err: any) {
+      console.error('Create investment error:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  }
 
-    // ─────────────────────────────
-    // Get single investment
-    // ─────────────────────────────
-    this.router.get('/investments/:id', async (req: Request, res: Response) => {
-      try {
-        const investmentId = BigInt(req.params.id);
-        const result = await this.daoService.getInvestment(investmentId);
-        res.json(result);
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Failed to fetch investment' });
-      }
-    });
+  async getInvestment(req: Request, res: Response) {
+    try {
+      const id = BigInt(req.params.id);
+      const investment = await this.daoService.getInvestment(id);
+      res.json({ success: true, data: investment });
+    } catch (err: any) {
+      console.error('Get investment error:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  }
 
-    // ─────────────────────────────
-    // Get all investments
-    // ─────────────────────────────
-    this.router.get('/investments', async (_req: Request, res: Response) => {
-      try {
-        const result = await this.daoService.getAllInvestments();
-        res.json(result);
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Failed to fetch investments' });
-      }
-    });
+  async getInvestments(req: Request, res: Response) {
+    try {
+      const investments = await this.daoService.getInvestments();
+      res.json({ success: true, data: investments });
+    } catch (err: any) {
+      console.error('Get investments error:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
   }
 }
+
