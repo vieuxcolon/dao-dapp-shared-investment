@@ -1,34 +1,41 @@
-// backend/src/modules/votes/votes.service.ts
-import {
-  governanceContract,
-  client,
-  walletClient,
-} from '../../blockchain/contracts';
+// src/modules/votes/votes.service.ts
+import { Injectable } from '@nestjs/common';
+import { governanceContract, walletClient } from '../../blockchain/contracts';
+import { Account } from 'viem';
+import { VoteDto } from './dto';
 
-interface VoteInput {
-  proposalId: bigint;
-  support: boolean;
-  weight: bigint;
-}
+// Replace with the actual signer address from your wallet client or environment
+const SIGNER_ADDRESS = process.env.SIGNER_ADDRESS as `0x${string}`;
 
+@Injectable()
 export class VotesService {
-  async getVotes(proposalId: bigint) {
-    return governanceContract.read.getVotes([proposalId]);
-  }
+  constructor() {}
 
-  async castVote(data: VoteInput) {
-    const hash = await walletClient.writeContract({
-      address: governanceContract.address,
-      abi: governanceContract.abi,
-      functionName: 'vote',
+  // ────────────── CAST VOTE ──────────────
+  async castVote(data: VoteDto) {
+    if (!SIGNER_ADDRESS) throw new Error('Signer address is not defined');
+
+    // Write vote transaction
+    const txHash = await governanceContract.write.vote({
+      account: SIGNER_ADDRESS,
       args: [data.proposalId, data.support, data.weight],
     });
 
-    const receipt = await client.waitForTransactionReceipt({ hash });
+    // Wait for confirmation
+    await walletClient.waitForTransactionReceipt({ hash: txHash });
 
-    return {
-      success: true,
-      txHash: receipt.transactionHash,
-    };
+    return { success: true, txHash };
+  }
+
+  // ────────────── GET VOTES FOR PROPOSAL ──────────────
+  async getVotes(proposalId: bigint) {
+    const votes = await governanceContract.read.getVotes([proposalId]);
+    return votes;
+  }
+
+  // ────────────── GET VOTING RESULTS ──────────────
+  async getResults(proposalId: bigint) {
+    const results = await governanceContract.read.getResults([proposalId]);
+    return results;
   }
 }
