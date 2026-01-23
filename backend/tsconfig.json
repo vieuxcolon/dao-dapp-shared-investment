@@ -1,39 +1,44 @@
 {
   "compilerOptions": {
-    "target": "ES2021",                  // BigInt, replaceAll, modern JS
+    /* ─────────────────────────────────────────────
+     * Language & Runtime
+     * ───────────────────────────────────────────── */
+    "target": "ES2022",                  // Required for Error.cause, BigInt, viem
+    "lib": ["ES2022"],
     "module": "commonjs",
-    "outDir": "dist",
-    "rootDir": "src",
-
-    "strict": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-
-    "skipLibCheck": true,                // Speeds up builds, OK with viem
-    "resolveJsonModule": true,
     "moduleResolution": "node",
+
+    /* ─────────────────────────────────────────────
+     * Project Structure
+     * ───────────────────────────────────────────── */
+    "rootDir": "src",
+    "outDir": "dist",
+    "resolveJsonModule": true,
+
+    /* ─────────────────────────────────────────────
+     * Interop & Environment
+     * ───────────────────────────────────────────── */
+    "esModuleInterop": true,
     "types": ["node"],
 
+    /* ─────────────────────────────────────────────
+     * Strictness (kept as-is, excellent setup)
+     * ───────────────────────────────────────────── */
+    "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
     "noImplicitThis": true,
-    "alwaysStrict": true
+    "alwaysStrict": true,
+    "forceConsistentCasingInFileNames": true,
 
-    /*
-     ⚠️ Intentionally NOT using paths/@artifacts for now.
-     Reason:
-     - ts-node
-     - ts-node-dev
-     - runtime Node resolution
-     do NOT automatically respect tsconfig paths.
-
-     We'll re-enable this later only if we also add:
-       - tsconfig-paths
-       - runtime registration
-    */
+    /* ─────────────────────────────────────────────
+     * Build Quality
+     * ───────────────────────────────────────────── */
+    "skipLibCheck": true                 // REQUIRED for viem / ox ecosystem
   },
+
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }
