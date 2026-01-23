@@ -1,27 +1,17 @@
 // backend/src/blockchain/viemClient.ts
 import { createPublicClient, createWalletClient, http } from 'viem';
-import { goerli } from 'viem/chains';
+import { mainnet } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 
-/**
- * Load private key from environment variables
- */
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
-/**
- * Public client: for read-only operations
- */
 export const publicClient = createPublicClient({
-  chain: goerli,
+  chain: mainnet,
   transport: http(),
 });
 
-/**
- * Wallet client: for sending transactions
- * Only initialized if PRIVATE_KEY is defined
- */
 export const walletClient = createWalletClient({
-  chain: goerli,
+  chain: mainnet,
   transport: http(),
-  account: PRIVATE_KEY ? privateKeyToAccount(PRIVATE_KEY) : undefined,
+  account: PRIVATE_KEY ? privateKeyToAccount(PRIVATE_KEY as `0x${string}`) : undefined,
 });
